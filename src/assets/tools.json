@@ -9,12 +9,11 @@
     "name": "Parse Bitcoin URI",
     "icon": "/images/icons/qr.png"
   },
-  {
-    "path": "/tools/currencyconverter",
-    "name": "Currency Converter",
-    "icon": "/images/icons/prices.png",
-    "unfinished": true
-  },
+    {
+      "path": "/tools/currencyconverter",
+      "name": "Currency Converter",
+      "icon": "/images/icons/prices.png"
+    },
   {
     "path": "/tools/scripteval",
     "name": "Eval Bitcoin Script",
