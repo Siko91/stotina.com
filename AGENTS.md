@@ -1,0 +1,32 @@
+# AGENTS.md
+
+## Project Overview
+This is a client-side-only tools website built with Vue 3. 
+* **Deployment**: Static site hosting on GitHub Pages (deployed via GitHub Actions).
+* **Architecture**: 100% client-side execution. No backend database or server APIs.
+* **Stack**: Vue 3 (Composition API), Vite, TypeScript, Tailwind CSS.
+
+## Architecture & Tool Constraints
+* **No Server Processing**: All tools (parsers, minifiers, converters) must process data entirely in the user's browser.
+* **Third-Party APIs**: Do not introduce external API dependencies. All logic must be local/offline-first.
+* **Persistence**: Use browser `localStorage` or `sessionStorage` if a tool needs to save user settings or history.
+* **Asset Optimization**: Keep external libraries to a absolute minimum to ensure fast loading times on GitHub Pages.
+
+## Executable Commands
+* **Local Dev**: `npm run serve`
+* **Linting**: `npm run lint`
+* **Release Build**: `npm run build:release` (outputs to the `/docs` directory for GitHub Pages deployment)
+
+## Code Conventions for Tools
+* **Single File Tools**: Keep individual tool views self-contained. Put logic, state, and UI in one component file if possible, or a local `/components` subfolder next to the tool.
+* **Web Workers**: For any heavy computation tools (e.g., encryption, large file parsing), use Web Workers to avoid freezing the browser main thread.
+* **Base URL Routing**: Remember that GitHub Pages often deploys to a subfolder (`username.github.io/repo-name`). Ensure Vite's `base` config and Vue Router use relative or base paths.
+
+## Strict Boundaries (Never Do)
+* **❌ NO SECRETS**: Never include private API keys or secrets. Everything built is visible to the public.
+* **❌ NO LARGE LIBS**: Do not import massive npm packages for minor tasks. Write plain JavaScript helper functions instead.
+
+## Definition of Done
+1. The tool works perfectly offline and entirely client-side.
+2. The project passes `npm run build:release` without routing or asset path errors.
+3. No console logs or debug states are left in the production code.
