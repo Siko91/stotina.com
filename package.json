@@ -3,24 +3,24 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
-        "serve": "vue-cli-service serve",
-        "serve:release": "vue-cli-service build --dest docs",
-        "build": "vue-cli-service build",
-        "build:release": "vue-cli-service build --dest docs",
-        "lint": "vue-cli-service lint",
+        "serve": "NODE_OPTIONS=--openssl-legacy-provider vue-cli-service serve",
+        "serve:release": "NODE_OPTIONS=--openssl-legacy-provider vue-cli-service build --dest docs",
+        "build": "NODE_OPTIONS=--openssl-legacy-provider vue-cli-service build",
+        "build:release": "NODE_OPTIONS=--openssl-legacy-provider vue-cli-service build --dest docs",
+        "lint": "NODE_OPTIONS=--openssl-legacy-provider vue-cli-service lint",
         "rss": "node src/rss.js"
     },
     "dependencies": {
-        "@fortawesome/fontawesome-free": "^5.13.0",
-        "bootstrap": "^4.4.1",
-        "core-js": "^3.6.4",
-        "jquery": "^3.5.1",
+        "@fortawesome/fontawesome-free": "^5.15.4",
+        "bootstrap": "^4.6.2",
+        "core-js": "^3.49.0",
+        "jquery": "^3.7.1",
         "popper.js": "^1.16.1",
         "qr-image": "^3.2.0",
         "rss": "^1.2.2",
-        "run-sdk": "^0.6.35",
-        "vue": "^2.6.11",
-        "vue-router": "^3.1.6"
+        "run-sdk": "^0.6.41",
+        "vue": "^2.7.16",
+        "vue-router": "^3.6.5"
     },
     "devDependencies": {
         "@vue/cli-plugin-babel": "~4.3.0",
@@ -29,7 +29,7 @@
         "babel-eslint": "^10.1.0",
         "eslint": "^6.7.2",
         "eslint-plugin-vue": "^6.2.2",
-        "vue-template-compiler": "^2.6.11"
+        "vue-template-compiler": "^2.7.16"
     },
     "eslintConfig": {
         "root": true,
