@@ -21,10 +21,10 @@
  **Component:** `src/components/tools/ConvertDataPage.vue`  
  Converts data between many formats (ascii, utf8, base64, hex, decimal, script, etc.) using BSVJS and the Buffer API.
 
- ### Currency Converter *(unfinished)*
+ ### Currency Converter
  **Path:** `/tools/currencyconverter`  
  **Component:** `src/components/tools/CurrencyConverterPage.vue`  
- Placeholder for a currency conversion tool (currently not implemented).
+ A currency conversion tool. Allows conversion between FIAT currencies (and a few cryptocurrencies too).
 
  ### Evaluate Bitcoin Script
  **Path:** `/tools/scripteval`  
