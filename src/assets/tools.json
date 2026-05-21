@@ -9,11 +9,11 @@
     "name": "Parse Bitcoin URI",
     "icon": "/images/icons/qr.png"
   },
-    {
-      "path": "/tools/currencyconverter",
-      "name": "Currency Converter",
-      "icon": "/images/icons/prices.png"
-    },
+  {
+    "path": "/tools/currencyconverter",
+    "name": "Currency Converter",
+    "icon": "/images/icons/prices.png"
+  },
   {
     "path": "/tools/scripteval",
     "name": "Eval Bitcoin Script",
@@ -43,33 +43,5 @@
     "path": "/tools/generatekey",
     "name": "Generate Testing Keys",
     "icon": "/images/icons/keys.png"
-  },
-  {
-    "path": "/tools/testnetwallet",
-    "name": "BSV Testnet Wallet",
-    "icon": "/images/icons/wallet.png",
-    "unfinished": true
-  },
-  {
-    "path": "/tools/mapigui",
-    "name": "MAPI User Interface",
-    "icon": "/images/icons/broadcast.png"
-  },
-  {
-    "path": "/tools/txgraph",
-    "name": "Transaction Graph",
-    "icon": "/images/icons/graph.png",
-    "unfinished": true
-  },
-  {
-    "path": "/tools/blockstats",
-    "name": "Block Inspector",
-    "icon": "/images/icons/chain.png",
-    "unfinished": true
-  },
-  {
-    "path": "/tools/duplicatetoken/run",
-    "name": "RUN NFT Duplicator",
-    "icon": "/images/icons/clone.png"
   }
 ]
