@@ -16,7 +16,7 @@
         <!-- Refresh button -->
         <div class="d-flex justify-content-end mb-3">
           <button class="btn btn-primary btn-sm" @click="refreshRates" title="Refresh rates">
-            <i class="fa-solid fa-sync"></i>
+            <i class="fas fa-sync"></i>
           </button>
         </div>
         <!-- Two-way amount inputs -->
@@ -81,8 +81,8 @@ export default {
     return {
       fromAmount: 1,
       toAmount: null,
-      from: "usd",
-      to: "eur",
+      from: "eur",
+      to: "usd",
       rates: null,
       loading: false,
       error: null,
@@ -100,6 +100,10 @@ export default {
         // Ensure default selections exist in the fetched rates
         if (!this.rates[this.from]) this.from = Object.keys(this.rates)[0];
         if (!this.rates[this.to]) this.to = Object.keys(this.rates)[1] || this.from;
+        // After rates are loaded and defaults are set, calculate the initial conversion
+        if (this.fromAmount != null) {
+          this.updateToAmount();
+        }
       } catch (e) {
         this.error = e.message || "Failed to load exchange rates.";
       } finally {
