@@ -103,6 +103,7 @@ const dataTypes = [
   "base64",
   "hex",
   "hex-LE",
+  "base32",
   "binary",
   "decimal",
   "asm-script",
@@ -151,6 +152,8 @@ export default {
           inputBuf = Buffer.from(this.inputValue, "hex").reverse();
         } else if (this.selectedTypeFrom === "binary") {
           inputBuf = this.binary2Buf(this.inputValue);
+        } else if (this.selectedTypeFrom === "base32") {
+          inputBuf = this.base32Decode(this.inputValue);
         } else {
           inputBuf = Buffer.from(this.inputValue, this.selectedTypeFrom);
         }
@@ -169,6 +172,8 @@ export default {
           this.outputValue = inputBuf.reverse().toString("hex");
         } else if (this.selectedTypeTo === "binary") {
           this.outputValue = this.buf2Binary(inputBuf);
+        } else if (this.selectedTypeTo === "base32") {
+          this.outputValue = this.base32Encode(inputBuf);
         } else {
           this.outputValue = inputBuf.toString(this.selectedTypeTo);
         }
@@ -215,6 +220,52 @@ export default {
         chunks.push(parseInt(chunk, 2));
       }
       return Buffer.from(chunks);
+    },
+    // Generic base encoder
+    baseAnyEncode(buf, alphabet, bitsPerChar, caseSensitive = false) {
+      let bits = 0,
+        value = 0,
+        output = "";
+      for (let i = 0; i < buf.length; i++) {
+        value = (value << 8) | buf[i];
+        bits += 8;
+        while (bits >= bitsPerChar) {
+          const index = (value >>> (bits - bitsPerChar)) & ((1 << bitsPerChar) - 1);
+          output += alphabet[index];
+          bits -= bitsPerChar;
+        }
+      }
+      if (bits > 0) {
+        const index = (value << (bitsPerChar - bits)) & ((1 << bitsPerChar) - 1);
+        output += alphabet[index];
+      }
+      return caseSensitive ? output : output.toUpperCase();
+    },
+    // Generic base decoder
+    baseAnyDecode(str, alphabet, bitsPerChar, caseSensitive = false) {
+      const clean = caseSensitive ? str : str.toUpperCase();
+      let bits = 0,
+        value = 0,
+        bytes = [];
+      for (let i = 0; i < clean.length; i++) {
+        const idx = alphabet.indexOf(clean[i]);
+        if (idx === -1) continue; // ignore unknown chars
+        value = (value << bitsPerChar) | idx;
+        bits += bitsPerChar;
+        while (bits >= 8) {
+          bytes.push((value >>> (bits - 8)) & 0xff);
+          bits -= 8;
+        }
+      }
+      return Buffer.from(bytes);
+    },
+    base32Encode(buf) {
+      const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+      return this.baseAnyEncode(buf, alphabet, 5, false);
+    },
+    base32Decode(str) {
+      const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+      return this.baseAnyDecode(str, alphabet, 5, false);
     },
   },
   props: {},
