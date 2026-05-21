@@ -12,43 +12,57 @@
 
     <div v-else class="row justify-content-center">
       <div class="col-md-8">
-        <div class="form-group">
-          <label for="amount">Amount</label>
-          <input
-            type="number"
-            step="any"
-            min="0"
-            v-model.number="amount"
-            id="amount"
-            class="form-control"
-          />
-        </div>
-
-        <div class="form-row">
+        <!-- Two-way amount inputs -->
+        <div class="form-row mb-3">
+          <div class="col">
+            <label for="fromAmount">From Amount</label>
+            <input
+              type="number"
+              step="any"
+              min="0"
+              v-model.number="fromAmount"
+              @input="updateToAmount"
+              id="fromAmount"
+              class="form-control"
+            />
+          </div>
           <div class="col">
             <label for="from">From</label>
             <select v-model="from" id="from" class="form-control">
-              <option v-for="(info, code) in rates" :key="code" :value="code">
-                {{ code.toUpperCase() }} ({{ info.name }})
+              <option v-for="code in sortedCodes" :key="code" :value="code">
+                {{ code.toUpperCase() }} ({{ rates[code].name }})
               </option>
             </select>
+          </div>
+        </div>
+
+        <div class="form-row mb-3">
+          <div class="col">
+            <label for="toAmount">To Amount</label>
+            <input
+              type="number"
+              step="any"
+              min="0"
+              v-model.number="toAmount"
+              @input="updateFromAmount"
+              id="toAmount"
+              class="form-control"
+            />
           </div>
           <div class="col">
             <label for="to">To</label>
             <select v-model="to" id="to" class="form-control">
-              <option v-for="(info, code) in rates" :key="code" :value="code">
-                {{ code.toUpperCase() }} ({{ info.name }})
+              <option v-for="code in sortedCodes" :key="code" :value="code">
+                {{ code.toUpperCase() }} ({{ rates[code].name }})
               </option>
             </select>
           </div>
         </div>
 
-        <div class="mt-3 text-center">
-          <button class="btn btn-primary mr-2" @click="refreshRates">Refresh rates</button>
-        </div>
-
-        <div class="mt-4 text-center" v-if="converted !== null">
-          <h3>{{ amount }} {{ from.toUpperCase() }} = {{ converted }} {{ to.toUpperCase() }}</h3>
+        <div class="d-flex justify-content-end mb-3">
+          <button class="btn btn-primary btn-sm" @click="refreshRates">
+            <i class="fa-solid fa-sync"></i>
+          </button>
         </div>
       </div>
     </div>
@@ -56,13 +70,14 @@
 </template>
 
 <script>
-import { getRates, formatRate } from "../../services/coingecko";
+import { getRates } from "../../services/coingecko";
 
 export default {
   name: "Currency-Converter",
   data() {
     return {
-      amount: 1,
+      fromAmount: 1,
+      toAmount: null,
       from: "usd",
       to: "eur",
       rates: null,
@@ -88,18 +103,42 @@ export default {
         this.loading = false;
       }
     },
+    updateToAmount() {
+      if (!this.rates) return;
+      const src = this.rates[this.from];
+      const tgt = this.rates[this.to];
+      if (!src || !tgt) return;
+      const result = this.fromAmount * (tgt.value / src.value);
+      this.toAmount = Number(result.toFixed(tgt.type === "crypto" ? 6 : 2));
+    },
+    updateFromAmount() {
+      if (!this.rates) return;
+      const src = this.rates[this.from];
+      const tgt = this.rates[this.to];
+      if (!src || !tgt) return;
+      const result = this.toAmount / (tgt.value / src.value);
+      this.fromAmount = Number(result.toFixed(src.type === "crypto" ? 6 : 2));
+    },
     refreshRates() {
       this.loadRates(true);
     },
   },
   computed: {
-    converted() {
-      if (!this.rates) return null;
-      const src = this.rates[this.from];
-      const tgt = this.rates[this.to];
-      if (!src || !tgt) return null;
-      const result = this.amount * (tgt.value / src.value);
-      return formatRate(result, tgt.type);
+    sortedCodes() {
+      if (!this.rates) return [];
+      return Object.keys(this.rates).sort();
+    },
+  },
+  watch: {
+    from() {
+      if (this.rates && this.fromAmount != null) {
+        this.updateToAmount();
+      }
+    },
+    to() {
+      if (this.rates && this.fromAmount != null) {
+        this.updateToAmount();
+      }
     },
   },
 };
