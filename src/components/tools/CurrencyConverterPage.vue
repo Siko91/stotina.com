@@ -11,7 +11,14 @@
     </div>
 
     <div v-else class="row justify-content-center">
+
       <div class="col-md-8">
+        <!-- Refresh button -->
+        <div class="d-flex justify-content-end mb-3">
+          <button class="btn btn-primary btn-sm" @click="refreshRates" title="Refresh rates">
+            <i class="fa-solid fa-sync"></i>
+          </button>
+        </div>
         <!-- Two-way amount inputs -->
         <div class="form-row mb-3">
           <div class="col">
@@ -59,11 +66,7 @@
           </div>
         </div>
 
-        <div class="d-flex justify-content-end mb-3">
-          <button class="btn btn-primary btn-sm" @click="refreshRates">
-            <i class="fa-solid fa-sync"></i>
-          </button>
-        </div>
+        <!-- Refresh button was moved above -->
       </div>
     </div>
   </div>
