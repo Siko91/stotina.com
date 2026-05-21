@@ -37,10 +37,6 @@
               <i class="fab fa-linkedin"></i> :
               <a href="https://www.linkedin.com/in/alexander-dinkov-26951ba8/" target=”_blank”>LinkedIn</a>
             </li>
-            <li class="list-group-item">
-              <i class="fab fa-twitter"></i> :
-              <a href="https://twitter.com/BitcoinSofia" target=”_blank”>@BitcoinSofia</a>
-            </li>
           </ul>
           <br />
         </div>
