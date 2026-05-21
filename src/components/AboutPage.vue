@@ -31,7 +31,7 @@
             </li>
             <li class="list-group-item">
               <i class="fas fa-phone"></i> :
-              <span>+359883332088</span>
+              <span>+359 883332088</span>
             </li>
             <li class="list-group-item">
               <i class="fab fa-linkedin"></i> :
