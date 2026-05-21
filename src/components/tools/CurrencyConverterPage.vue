@@ -100,10 +100,17 @@ export default {
         // Ensure default selections exist in the fetched rates
         if (!this.rates[this.from]) this.from = Object.keys(this.rates)[0];
         if (!this.rates[this.to]) this.to = Object.keys(this.rates)[1] || this.from;
-        // After rates are loaded and defaults are set, calculate the initial conversion
+        // Read URL query parameters to override defaults if present
+        const query = this.$route && this.$route.query ? this.$route.query : {};
+        if (query.from && this.rates[query.from]) this.from = query.from;
+        if (query.to && this.rates[query.to]) this.to = query.to;
+        if (query.amount && !isNaN(parseFloat(query.amount))) this.fromAmount = Number(query.amount);
+        // After rates are loaded and values are set, calculate the initial conversion
         if (this.fromAmount != null) {
           this.updateToAmount();
         }
+        // Sync URL to current state (in case defaults were used)
+        this.updateUrl();
       } catch (e) {
         this.error = e.message || "Failed to load exchange rates.";
       } finally {
@@ -129,6 +136,16 @@ export default {
     refreshRates() {
       this.loadRates(true);
     },
+    updateUrl() {
+      if (!this.$router) return;
+      const query = {
+        from: this.from,
+        to: this.to,
+        amount: this.fromAmount
+      };
+      // Replace without adding a new history entry
+      this.$router.replace({ query });
+    }
   },
   computed: {
     sortedCodes() {
@@ -140,13 +157,21 @@ export default {
     from() {
       if (this.rates && this.fromAmount != null) {
         this.updateToAmount();
+        this.updateUrl();
       }
     },
     to() {
       if (this.rates && this.fromAmount != null) {
         this.updateToAmount();
+        this.updateUrl();
       }
     },
+    fromAmount() {
+      if (this.rates && this.fromAmount != null) {
+        this.updateToAmount();
+        this.updateUrl();
+      }
+    }
   },
 };
 </script>
