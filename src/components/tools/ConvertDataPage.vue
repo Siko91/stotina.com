@@ -98,6 +98,7 @@ const dataTypes = [
   "ascii",
   "utf8",
   "utf16le",
+  "latin1",
   "ucs2",
   "base64",
   "hex",
