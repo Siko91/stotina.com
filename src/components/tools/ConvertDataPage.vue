@@ -100,15 +100,15 @@ const dataTypes = [
   "utf16le",
   "latin1",
   "ucs2",
+  "base32",
+  "base-58",
   "base64",
   "hex",
   "hex-LE",
-  "base32",
   "binary",
   "decimal",
   "asm-script",
   "bitcoind-script",
-  "base-58",
 ];
 
 export default {
