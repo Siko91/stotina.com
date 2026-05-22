@@ -1,7 +1,7 @@
 [
   {
     "path": "/tools/decoderaw",
-    "name": "Decode Raw Transaction",
+    "name": "Decode Bitcoin Tx",
     "icon": "/images/icons/tx-decoder.png"
   },
   {
@@ -25,11 +25,6 @@
     "icon": "/images/icons/formats.png"
   },
   {
-    "path": "/tools/txdemo",
-    "name": "Make Transactions Demo",
-    "icon": "/images/icons/demonstration.png"
-  },
-  {
     "path": "/tools/debugbsv15",
     "name": "Console with BSVJS 1.5",
     "icon": "/images/icons/term1.png"
@@ -46,7 +41,7 @@
   },
   {
     "path": "/tools/stopwatch",
-    "name": "Simple Stopwatch / Timer",
+    "name": "Stopwatch",
     "icon": "/images/icons/stopwatch.png"
   },
   {
@@ -93,7 +88,7 @@
   },
   {
     "path": "/tools/json-path",
-    "name": "JSON Path Visualizer",
+    "name": "JSON-Path Visualizer",
     "icon": "/images/icons/json-path.png",
     "unfinished": true
   },

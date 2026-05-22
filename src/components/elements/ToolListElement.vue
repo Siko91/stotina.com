@@ -1,7 +1,7 @@
 <template>
   <div>
-    <div class="toolListBox row">
-      <div v-for="tool in tools" v-bind:key="tool.id" class="col-lg-3 col-md-4">
+  <div class="toolListBox grid">
+    <div v-for="tool in tools" v-bind:key="tool.id" class="toolCard">
         <a
           class="toolListItem theme-br-mainFont"
           :class="tool.unfinished ? 'unfinished' : 'finished'"
@@ -41,29 +41,35 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-.toolListBox {
-  width: 80%;
-  margin: auto;
-}
-.toolListItem {
-  display: block;
-  color: inherit;
-  text-decoration: inherit;
+ .toolListBox {
+   width: 90%;
+   margin: auto;
+   display: grid;
+   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+   gap: 1rem;
+ }
+ .toolListItem {
+   display: block;
+   color: inherit;
+   text-decoration: inherit;
 
-  margin: 25px 0;
-  border-width: 4px;
-  border-style: solid;
-  border-radius: 1rem;
-}
-.toolTitleArea {
-  padding-top: 20px;
-  padding-bottom: 10px;
-  text-align: center;
-}
+   margin: 0;
+   border-width: 4px;
+   border-style: solid;
+   border-radius: 1rem;
+   padding: 0.5rem;
+
+   min-height: 12em;
+ }
+ .toolTitleArea {
+   padding: 0.5rem 0;
+   text-align: center;
+   transition: transform 0.3s ease;
+ }
 .toolTitleIconBox {
   display: inline-block;
-  width: 60px;
-  height: 60px;
+  width: 80px;
+  height: 80px;
   border-radius: 10px;
 }
 .toolTitleIconBox img {
@@ -76,20 +82,17 @@ export default {
   font-weight: bold;
 }
 
-.toolListItem.finished:hover .toolTitleArea {
-  transition: color 0.5s;
-  color: var(--font-footerLinks) !important;
-  transform: scale(1.05);
-}
+ .toolListItem.finished:hover .toolTitleArea {
+   color: var(--font-footerLinks) !important;
+   transform: scale(1.05);
+ }
 
-.toolListItem.finished:hover .toolTitleArea .toolTitleIconBox {
-  transition: background-color 0.5s, transform 0.3s ease-in-out;
-  background-color: var(--font-footerLinks) !important;
-  transform: rotate(5deg);
-}
+ .toolListItem.finished:hover .toolTitleArea .toolTitleIconBox {
+   background-color: var(--font-footerLinks) !important;
+   transform: rotate(5deg);
+ }
 
-.toolListItem.unfinished:hover {
-  transition: opacity 0.5s;
-  opacity: 30%;
-}
+ .toolListItem.unfinished:hover {
+   opacity: 0.3;
+ }
 </style>
