@@ -42,6 +42,14 @@ Shows a side‑by‑side diff of two text inputs.  A lightweight line‑based di
 
 ## 8. JsonPath Visualizer Tool
 Allows the user to type a JSONPath expression and see the matching nodes highlighted in a formatted JSON view.  The component parses the JSON with `JSON.parse`, evaluates the JsonPath using a small handcrafted evaluator (supporting `$.store.book[*].author`‑style queries), and highlights results.
+---
+
+## 9. Simple HTML Visualizer
+Shows HTML on one side and visualization on the other side. Has buttons for inserting commonly used snippets at the selected location of the cursor. (the insertable things are common UI elements of MarkDown)
+---
+
+## 10. Simple Markdown Visualizer
+Shows Markdown on one side and HTML visualization on the other side. Scrolling N% down on one side also scrolls the other side by the same %.
 
 ---
 

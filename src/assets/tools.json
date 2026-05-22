@@ -2,7 +2,7 @@
   {
     "path": "/tools/decoderaw",
     "name": "Decode Raw Transaction",
-    "icon": "/images/icons/decoder.png"
+    "icon": "/images/icons/tx-decoder.png"
   },
   {
     "path": "/tools/parseuri",
@@ -17,7 +17,7 @@
   {
     "path": "/tools/scripteval",
     "name": "Eval Bitcoin Script",
-    "icon": "/images/icons/compiler.png"
+    "icon": "/images/icons/b-compiler.png"
   },
   {
     "path": "/tools/convertdata",
@@ -43,5 +43,76 @@
     "path": "/tools/generatekey",
     "name": "Generate Testing Keys",
     "icon": "/images/icons/keys.png"
+  },
+  {
+    "path": "/tools/stopwatch",
+    "name": "Simple Stopwatch / Timer",
+    "icon": "/images/icons/stopwatch.png"
+  },
+  {
+    "path": "/tools/color-palette",
+    "name": "Color Palette Generator",
+    "icon": "/images/icons/color-palette.png",
+    "unfinished": true
+  },
+  {
+    "path": "/tools/paint",
+    "name": "Simple Painter",
+    "icon": "/images/icons/paint.png",
+    "unfinished": true
+  },
+  {
+    "path": "/tools/convert-doc",
+    "name": "Document Converter",
+    "icon": "/images/icons/convert-doc.png",
+    "unfinished": true
+  },
+  {
+    "path": "/tools/cron",
+    "name": "CRON Parser",
+    "icon": "/images/icons/cron.png",
+    "unfinished": true
+  },
+  {
+    "path": "/tools/diff",
+    "name": "Text Diff Visualizer",
+    "icon": "/images/icons/diff.png",
+    "unfinished": true
+  },
+  {
+    "path": "/tools/html-viewer",
+    "name": "HTML Visualizer",
+    "icon": "/images/icons/html-viewer.png",
+    "unfinished": true
+  },
+  {
+    "path": "/tools/js-runner",
+    "name": "JS Runner",
+    "icon": "/images/icons/js-compiler.png",
+    "unfinished": true
+  },
+  {
+    "path": "/tools/json-path",
+    "name": "JSON Path Visualizer",
+    "icon": "/images/icons/json-path.png",
+    "unfinished": true
+  },
+  {
+    "path": "/tools/lorem",
+    "name": "Lorem Ipsum Generator",
+    "icon": "/images/icons/lorem.png",
+    "unfinished": true
+  },
+  {
+    "path": "/tools/markdown-viewer",
+    "name": "Markdown Viewer",
+    "icon": "/images/icons/markdown-viewer.png",
+    "unfinished": true
+  },
+  {
+    "path": "/tools/qr",
+    "name": "QR Code Generator",
+    "icon": "/images/icons/qr2.png",
+    "unfinished": true
   }
 ]

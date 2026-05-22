@@ -31,6 +31,8 @@ import ParseBitcoinUriPage from "./components/tools/ParseBitcoinUriPage.vue"
 import RpcDashboardPage from "./components/tools/RpcDashboardPage.vue"
 import TransactionGraph from "./components/tools/TransactionGraph.vue"
 import TxDemoPage from "./components/tools/TxDemoPage.vue"
+import StopwatchPage from "./components/tools/StopwatchPage.vue"
+import NotImplementedPage from "./components/tools/NotImplementedPage.vue"
 
 require("jquery");
 require("bootstrap");
@@ -67,6 +69,19 @@ const router = new VueRouter({
     { path: "/tools/rpcdashboard", component: RpcDashboardPage },
     { path: "/tools/mapigui", component: MapiGuiPage },
     { path: "/tools/duplicatetoken/run", component: DuplicateRunTokens },
+    { path: "/tools/stopwatch", component: StopwatchPage },
+
+    { path: "/tools/color-palette", component: NotImplementedPage },
+    { path: "/tools/paint", component: NotImplementedPage },
+    { path: "/tools/convert-doc", component: NotImplementedPage },
+    { path: "/tools/cron", component: NotImplementedPage },
+    { path: "/tools/diff", component: NotImplementedPage },
+    { path: "/tools/html-viewer", component: NotImplementedPage },
+    { path: "/tools/js-runner", component: NotImplementedPage },
+    { path: "/tools/json-path", component: NotImplementedPage },
+    { path: "/tools/lorem", component: NotImplementedPage },
+    { path: "/tools/markdown-viewer", component: NotImplementedPage },
+    { path: "/tools/qr", component: NotImplementedPage },
 
     { path: "/apps", component: AppsPage },
 
