@@ -3,7 +3,7 @@
   <div class="toolListBox grid">
     <div v-for="tool in tools" v-bind:key="tool.id" class="toolCard">
         <a
-          class="toolListItem theme-br-mainFont"
+          class="toolListItem"
           :class="tool.unfinished ? 'unfinished' : 'finished'"
           v-on:click="$router.push(tool.path)"
           v-bind:href="'/#' + tool.path"
@@ -54,12 +54,8 @@ export default {
    text-decoration: inherit;
 
    margin: 0;
-   border-width: 4px;
-   border-style: solid;
-   border-radius: 1rem;
    padding: 0.5rem;
 
-   min-height: 12em;
  }
  .toolTitleArea {
    padding: 0.5rem 0;
@@ -68,8 +64,8 @@ export default {
  }
 .toolTitleIconBox {
   display: inline-block;
-  width: 80px;
-  height: 80px;
+  width: 120px;
+  height: 120px;
   border-radius: 10px;
 }
 .toolTitleIconBox img {

@@ -5,7 +5,7 @@
         <div>
           <img src="/images/logo.png" alt />
         </div>
-        <div>Copyright © 2020 Stotina</div>
+        <div>Copyright © 2026 Stotina</div>
       </div>
 
       <div class="footer-group col-md-7 col-lg-2">
