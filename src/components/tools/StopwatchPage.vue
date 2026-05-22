@@ -1,6 +1,6 @@
 <template>
   <div class="container py-4">
-    <h1 class="text-center mb-4">Stopwatch / Timer</h1>
+    <h1 class="text-center mb-4">Stopwatch</h1>
     <div class="text-center display-4 mb-3">{{ formattedTime }}</div>
     <div class="d-flex justify-content-center mb-3">
       <button class="btn btn-success mx-1" @click="start" :disabled="running">Start</button>
