@@ -1,15 +1,16 @@
 <template>
   <div class="introWrapper text-center">
     <div class="intro">
-      <div class="title">BITCOIN FOR BUSINESS</div>
+      <div class="title">Hello, World!</div>
       <div class="description">
-        <div>Helping your business get an edge.<br>
-          Focused on practicality, not on trends.<br>
-          Do more with less.
+        <div>
+          I'm Aleks - a backend engineer, tool builder
+          <br />
+          and (ocasionally) consultant.
         </div>
       </div>
       <button class="call-to-action" v-on:click="onLetsTalkClick()">
-        Lets Talk!
+        Let's Talk!
       </button>
     </div>
   </div>
