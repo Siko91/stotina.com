@@ -7,7 +7,7 @@
   {
     "path": "/tools/parseuri",
     "name": "Parse Bitcoin URI",
-    "icon": "/images/icons/qr.png"
+    "icon": "/images/icons/bitcoin-uri.png"
   },
   {
     "path": "/tools/currencyconverter",
