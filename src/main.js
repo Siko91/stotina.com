@@ -16,7 +16,7 @@ import TermsPage from "./components/TermsPage.vue";
 
 import ProbablyNothingPage from "./components/apps/ProbablyNothingPage.vue";
 
-import BlokInspector from "./components/tools/BlokInspector.vue"
+import BlockInspector from "./components/tools/BlockInspector.vue"
 import BsvTestnetWalletPage from "./components/tools/BsvTestnetWalletPage.vue"
 import ConsoleBsvJs15Page from "./components/tools/ConsoleBsvJs15Page.vue"
 import ConsoleBsvJs20Page from "./components/tools/ConsoleBsvJs20Page.vue"
@@ -51,7 +51,7 @@ const router = new VueRouter({
 
     { path: "/tools", component: ToolsPage },
 
-    { path: "/tools/blockstats", component: BlokInspector },
+    { path: "/tools/blockstats", component: BlockInspector },
     { path: "/tools/decoderaw", component: DecodeRawTxPage },
     { path: "/tools/decoderaw/:rawtx", component: DecodeRawTxPage },
     { path: "/tools/parseuri", component: ParseBitcoinUriPage },
