@@ -77,8 +77,7 @@
   {
     "path": "/tools/html-viewer",
     "name": "HTML Visualizer",
-    "icon": "/images/icons/html-viewer.png",
-    "unfinished": true
+    "icon": "/images/icons/html-viewer.png"
   },
   {
     "path": "/tools/js-runner",
