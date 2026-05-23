@@ -33,6 +33,7 @@ import TransactionGraph from "./components/tools/TransactionGraph.vue"
 import TxDemoPage from "./components/tools/TxDemoPage.vue"
 import StopwatchPage from "./components/tools/StopwatchPage.vue"
 import NotImplementedPage from "./components/tools/NotImplementedPage.vue"
+import HtmlVisualizer from "./components/tools/HtmlVisualizer.vue"
 
 require("jquery");
 require("bootstrap");
@@ -76,7 +77,7 @@ const router = new VueRouter({
     { path: "/tools/convert-doc", component: NotImplementedPage },
     { path: "/tools/cron", component: NotImplementedPage },
     { path: "/tools/diff", component: NotImplementedPage },
-    { path: "/tools/html-viewer", component: NotImplementedPage },
+    { path: "/tools/html-viewer", component: HtmlVisualizer },
     { path: "/tools/js-runner", component: NotImplementedPage },
     { path: "/tools/json-path", component: NotImplementedPage },
     { path: "/tools/lorem", component: NotImplementedPage },

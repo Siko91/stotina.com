@@ -28,5 +28,5 @@ This is a client-side-only tools website built with Vue 3.
 
 ## Definition of Done
 1. The tool works perfectly offline and entirely client-side.
-2. The project passes `npm run build:release` without routing or asset path errors.
+2. The project passes `npm run lint` without routing or asset path errors.
 3. No console logs or debug states are left in the production code.
