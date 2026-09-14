@@ -75,6 +75,11 @@
     "unfinished": true
   },
   {
+    "path": "/tools/image-collage-maker",
+    "name": "Collage Maker",
+    "icon": "/images/icons/image-collage-maker.png"
+  },
+  {
     "path": "/tools/html-viewer",
     "name": "HTML Visualizer",
     "icon": "/images/icons/html-viewer.png"

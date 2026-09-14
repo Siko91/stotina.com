@@ -34,6 +34,7 @@ import TxDemoPage from "./components/tools/TxDemoPage.vue"
 import StopwatchPage from "./components/tools/StopwatchPage.vue"
 import NotImplementedPage from "./components/tools/NotImplementedPage.vue"
 import HtmlVisualizer from "./components/tools/HtmlVisualizer.vue"
+import ImageCollageMaker from "./components/tools/ImageCollageMaker.vue"
 
 require("jquery");
 require("bootstrap");
@@ -78,6 +79,7 @@ const router = new VueRouter({
     { path: "/tools/cron", component: NotImplementedPage },
     { path: "/tools/diff", component: NotImplementedPage },
     { path: "/tools/html-viewer", component: HtmlVisualizer },
+    { path: "/tools/image-collage-maker", component: ImageCollageMaker },
     { path: "/tools/js-runner", component: NotImplementedPage },
     { path: "/tools/json-path", component: NotImplementedPage },
     { path: "/tools/lorem", component: NotImplementedPage },
