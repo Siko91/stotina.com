@@ -12,7 +12,7 @@
     <div class="row">
       <div class="col-md-8 d-flex justify-content-center align-items-center p-1 p-sm-2 p-md-3" ref="canvasContainer">
         <div id="canvas-wrapper" class="border border-secondary rounded position-relative bg-light overflow-hidden" ref="canvas" :style="canvasWrapperStyle">
-          <div v-for="(image, index) in images" :key="image.id" class="collage-item"
+          <div v-for="(image, index) in images" :key="image.id" v-show="image.visible" class="collage-item"
                :style="{
                  position: 'absolute',
                  left: image.x + 'px',
@@ -22,7 +22,8 @@
                  zIndex: image.zIndex,
                  border: selectedIndex === index ? '2px solid #007bff' : 'none',
                  borderRadius: '4px',
-                 cursor: 'move'
+                 cursor: 'move',
+                 transform: image.flipped ? 'scaleX(-1)' : ''
                }"
                @mousedown="startDrag($event, index)"
                @touchstart="startDrag($event, index)"
@@ -42,14 +43,29 @@
           <h6>Layers</h6>
           <div class="layer-list">
             <div v-for="(image, index) in images" :key="image.id" class="layer-item d-flex align-items-start p-2 border rounded mb-2"
-                 :class="{ 'bg-light': selectedIndex === index }"
+                 :class="{ 'bg-light': selectedIndex === index, 'layer-hidden': !image.visible }"
                  @click="selectLayer(index)">
               <div class="flex-shrink-0 me-3">
-                <img :src="image.url" :alt="image.name" class="layer-preview" draggable="false">
+                <img :src="image.url" :alt="image.name" class="layer-preview" draggable="false"
+                     :class="{ 'layer-flipped': image.flipped }">
               </div>
               <div class="flex-grow-1">
                 <div class="layer-name fw-bold">{{ truncateFilename(image.name, 15) }}</div>
                 <div class="layer-info text-small text-muted">{{ image.width }}×{{ image.height }}px</div>
+              </div>
+              <div class="layer-controls d-flex flex-column me-2">
+                <button class="btn btn-sm btn-outline-secondary mb-1" @click.stop="toggleVisibility(index)"
+                        :title="image.visible ? 'Hide layer' : 'Show layer'"
+                        :class="{ 'btn-outline-secondary': image.visible, 'btn-outline-warning': !image.visible }">
+                  <i :class="image.visible ? 'fas fa-eye' : 'fas fa-eye-slash'"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-secondary mb-1" @click.stop="flipImage(index)" title="Flip left-right"
+                        :class="{ 'active': image.flipped }">
+                  <i class="fas fa-arrows-alt-h"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" @click.stop="duplicateLayer(index)" title="Duplicate layer">
+                  <i class="fas fa-copy"></i>
+                </button>
               </div>
               <div class="layer-controls d-flex flex-column">
                 <button class="btn btn-sm btn-outline-primary mb-1" @click.stop="moveLayerUp(index)" title="Move up">
@@ -188,7 +204,9 @@ export default {
               height: height,
               x: (this.canvasWidth - width) / 2,
               y: (this.canvasHeight - height) / 2,
-              zIndex: this.images.length
+              zIndex: this.images.length,
+              visible: true,
+              flipped: false
             };
             this.images.push(newImage);
             this.selectLayer(this.images.length - 1);
@@ -378,6 +396,43 @@ export default {
       }
     },
 
+    toggleVisibility(index) {
+      this.$set(this.images[index], 'visible', !this.images[index].visible);
+    },
+
+    flipImage(index) {
+      const img = this.images[index];
+      if (img.flipped) {
+        // Reset bounds when un-flipping
+        img.x = Math.max(0, Math.min(img.x, this.canvasWidth - img.width));
+        img.y = Math.max(0, Math.min(img.y, this.canvasHeight - img.height));
+      } else {
+        // When flipping, adjust position if it would go off canvas
+        if (img.x < 0) img.x = 50;
+      }
+      this.$set(this.images[index], 'flipped', !img.flipped);
+    },
+
+    duplicateLayer(index) {
+      const original = this.images[index];
+      const newImage = {
+        id: Date.now() + Math.random(),
+        url: original.url,
+        name: original.name + ' (copy)',
+        originalWidth: original.originalWidth,
+        originalHeight: original.originalHeight,
+        width: original.width,
+        height: original.height,
+        x: original.x + 30,
+        y: original.y + 30,
+        zIndex: this.images.length,
+        visible: original.visible,
+        flipped: original.flipped
+      };
+      this.images.push(newImage);
+      this.selectLayer(this.images.length - 1);
+    },
+
     updateZIndices() {
       this.images.forEach((image, index) => {
         image.zIndex = index;
@@ -486,11 +541,29 @@ export default {
   background-color: rgba(0, 123, 255, 0.1);
 }
 
+.layer-item.layer-hidden {
+  opacity: 0.3;
+}
+
+.layer-item.layer-hidden .layer-preview {
+  filter: grayscale(100%) opacity(0.5);
+}
+
 .layer-preview {
   width: 40px;
   height: 40px;
   object-fit: cover;
   border-radius: 3px;
+}
+
+.layer-preview.layer-flipped {
+  transform: scaleX(-1);
+}
+
+.layer-controls .btn.active {
+  background-color: #ffc107;
+  border-color: #ffc107;
+  color: #212529;
 }
 
 .layer-name {
