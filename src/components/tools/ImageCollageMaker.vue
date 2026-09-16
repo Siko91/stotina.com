@@ -10,8 +10,8 @@
     </div>
 
     <div class="row">
-      <div class="col-md-8">
-        <div id="canvas-wrapper" class="border border-secondary rounded p-3 position-relative bg-light" ref="canvas" :style="{ width: canvasWidth + 'px', height: canvasHeight + 'px' }">
+      <div class="col-md-8 d-flex justify-content-center align-items-center p-1 p-sm-2 p-md-3" ref="canvasContainer">
+        <div id="canvas-wrapper" class="border border-secondary rounded position-relative bg-light overflow-hidden" ref="canvas" :style="canvasWrapperStyle">
           <div v-for="(image, index) in images" :key="image.id" class="collage-item"
                :style="{
                  position: 'absolute',
@@ -101,14 +101,17 @@ export default {
       resizeStartY: 0,
       resizeStartImgX: 0,
       resizeStartImgY: 0,
+      // Fixed canvas dimensions - these never change
       canvasWidth: 800,
       canvasHeight: 600,
+      // Scale factor for fitting canvas in container
+      canvasScale: 1,
       resizeHandles: ['top-left', 'top-right', 'bottom-left', 'bottom-right']
     };
   },
   mounted() {
-    this.updateCanvasSize();
-    window.addEventListener('resize', this.updateCanvasSize);
+    this.resizeContainer();
+    window.addEventListener('resize', this.resizeContainer);
     document.addEventListener('mousemove', this.performDrag);
     document.addEventListener('mouseup', this.endDrag);
     document.addEventListener('mouseup', this.endResize);
@@ -117,7 +120,7 @@ export default {
     document.addEventListener('touchend', this.endResize);
   },
   beforeDestroy() {
-    window.removeEventListener('resize', this.updateCanvasSize);
+    window.removeEventListener('resize', this.resizeContainer);
     document.removeEventListener('mousemove', this.performDrag);
     document.removeEventListener('mouseup', this.endDrag);
     document.removeEventListener('mouseup', this.endResize);
@@ -126,10 +129,12 @@ export default {
     document.removeEventListener('touchend', this.endResize);
   },
   computed: {
-    canvasStyle() {
+    canvasWrapperStyle() {
+      // Apply scale to fit canvas in container while maintaining aspect ratio
       return {
-        width: this.canvasWidth + 'px',
-        height: this.canvasHeight + 'px'
+        transform: `scale(${this.canvasScale})`,
+        width: `${this.canvasWidth}px`,
+        height: `${this.canvasHeight}px`
       };
     }
   },
@@ -199,12 +204,16 @@ export default {
       this.dragImageIndex = index;
       this.selectLayer(index);
       const canvasRect = this.$refs.canvas.getBoundingClientRect();
+      // Adjust for CSS scale - divide by canvasScale to get actual canvas coordinates
+      const scale = this.canvasScale || 1;
+      const rectLeft = canvasRect.left / scale;
+      const rectTop = canvasRect.top / scale;
       if (event.type === 'touchstart') {
-        this.dragStartX = event.touches[0].clientX - canvasRect.left - this.images[index].x;
-        this.dragStartY = event.touches[0].clientY - canvasRect.top - this.images[index].y;
+        this.dragStartX = event.touches[0].clientX - rectLeft - this.images[index].x;
+        this.dragStartY = event.touches[0].clientY - rectTop - this.images[index].y;
       } else {
-        this.dragStartX = event.clientX - canvasRect.left - this.images[index].x;
-        this.dragStartY = event.clientY - canvasRect.top - this.images[index].y;
+        this.dragStartX = event.clientX - rectLeft - this.images[index].x;
+        this.dragStartY = event.clientY - rectTop - this.images[index].y;
       }
       this.images[index].zIndex = this.images.length;
     },
@@ -215,10 +224,14 @@ export default {
       this.resizeImageIndex = index;
       this.selectLayer(index);
       const canvasRect = this.$refs.canvas.getBoundingClientRect();
+      // Adjust for CSS scale - divide by canvasScale to get actual canvas coordinates
+      const scale = this.canvasScale || 1;
+      const rectLeft = canvasRect.left / scale;
+      const rectTop = canvasRect.top / scale;
       const clientX = event.type === 'touchstart' ? event.touches[0].clientX : event.clientX;
       const clientY = event.type === 'touchstart' ? event.touches[0].clientY : event.clientY;
-      this.resizeStartX = clientX - canvasRect.left;
-      this.resizeStartY = clientY - canvasRect.top;
+      this.resizeStartX = clientX - rectLeft;
+      this.resizeStartY = clientY - rectTop;
       this.resizeStartWidth = this.images[index].width;
       this.resizeStartHeight = this.images[index].height;
       this.resizeStartImgX = this.images[index].x;
@@ -253,10 +266,14 @@ export default {
       const idx = this.resizeImageIndex;
       const img = this.images[idx];
       const canvasRect = this.$refs.canvas.getBoundingClientRect();
+      // Adjust for CSS scale - divide by canvasScale to get actual canvas coordinates
+      const scale = this.canvasScale || 1;
+      const rectLeft = canvasRect.left / scale;
+      const rectTop = canvasRect.top / scale;
       const clientX = event.type === 'touchmove' ? event.touches[0].clientX : event.clientX;
       const clientY = event.type === 'touchmove' ? event.touches[0].clientY : event.clientY;
-      const cx = clientX - canvasRect.left;
-      const cy = clientY - canvasRect.top;
+      const cx = clientX - rectLeft;
+      const cy = clientY - rectTop;
       const dx = cx - this.resizeStartX;
       const dy = cy - this.resizeStartY;
 
@@ -425,12 +442,15 @@ export default {
       });
     },
 
-    updateCanvasSize() {
-      const container = this.$refs.canvas;
-      if (container && container.parentElement) {
-        const parentWidth = container.parentElement.clientWidth;
-        this.canvasWidth = Math.min(parentWidth * 0.85, 1000);
-        this.canvasHeight = Math.min(this.canvasWidth * 0.75, 600);
+    resizeContainer() {
+      const container = this.$refs.canvasContainer;
+      if (container) {
+        const containerWidth = container.clientWidth;
+        const containerHeight = container.clientHeight;
+        // Calculate scale to fit canvas while maintaining aspect ratio
+        const scaleX = containerWidth / this.canvasWidth;
+        const scaleY = containerHeight / this.canvasHeight;
+        this.canvasScale = Math.min(scaleX, scaleY, 1); // Don't upscale beyond 100%
       }
     },
 
