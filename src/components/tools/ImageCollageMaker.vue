@@ -28,7 +28,8 @@
                @mousedown="startDrag($event, index)"
                @touchstart="startDrag($event, index)"
                :class="{ selected: selectedIndex === index }">
-            <img :src="image.url" :alt="image.name" class="w-100 h-100" draggable="false">
+            <img :src="image.url" :alt="image.name" class="w-100 h-100" draggable="false"
+                 :style="{ opacity: (image.opacity != null ? image.opacity : 100) / 100 }">
             <!-- Resize handles (corners) -->
             <div v-for="handle in resizeHandles" :key="handle" class="resize-handle"
                  :class="'resize-' + handle"
@@ -47,11 +48,26 @@
                  @click="selectLayer(index)">
               <div class="flex-shrink-0 me-3">
                 <img :src="image.url" :alt="image.name" class="layer-preview" draggable="false"
-                     :class="{ 'layer-flipped': image.flipped }">
+                     :class="{ 'layer-flipped': image.flipped }"
+                     :style="{ opacity: (image.opacity != null ? image.opacity : 100) / 100 }">
               </div>
               <div class="flex-grow-1">
-                <div class="layer-name fw-bold">{{ truncateFilename(image.name, 15) }}</div>
+                <div class="layer-name fw-bold" @dblclick="startRename(index)" v-if="editingIndex !== index">
+                  {{ truncateFilename(image.name, 15) }}
+                </div>
+                <input v-else v-model="editName" @blur="finishRename" @keyup.enter="finishRename"
+                       @keyup.esc="cancelRename" @focus="selectEditName"
+                       ref="nameInput" class="form-control form-control-sm layer-name-input" />
                 <div class="layer-info text-small text-muted">{{ image.width }}×{{ image.height }}px</div>
+                <div class="layer-opacity mt-1">
+                  <div class="opacity-controls d-flex align-items-center gap-2">
+                    <div class="flex-grow">
+                      <input type="range" class="form-range" min="0" max="100" step="1" v-model.number="image.opacity"
+                             @input="updateLayerOpacity(index)">
+                    </div>
+                    <span class="flex-grow text-muted text-xs ml-2">{{ image.opacity }}%</span>
+                  </div>
+                </div>
               </div>
               <div class="layer-controls d-flex flex-column me-2">
                 <button class="btn btn-sm btn-outline-secondary mb-1" @click.stop="toggleVisibility(index)"
@@ -105,6 +121,8 @@ export default {
     return {
       images: [],
       selectedIndex: -1,
+      editingIndex: -1,
+      editName: '',
       isDragging: false,
       dragStartX: 0,
       dragStartY: 0,
@@ -206,7 +224,8 @@ export default {
               y: (this.canvasHeight - height) / 2,
               zIndex: this.images.length,
               visible: true,
-              flipped: false
+              flipped: false,
+              opacity: 100
             };
             this.images.push(newImage);
             this.selectLayer(this.images.length - 1);
@@ -396,6 +415,42 @@ export default {
       }
     },
 
+    startRename(index) {
+      this.editingIndex = index;
+      this.editName = this.images[index].name;
+    },
+
+    finishRename() {
+      if (this.editingIndex >= 0 && this.editName.trim()) {
+        this.images[this.editingIndex].name = this.editName.trim();
+      }
+      this.editingIndex = -1;
+      this.editName = '';
+    },
+
+    cancelRename() {
+      this.editingIndex = -1;
+      this.editName = '';
+    },
+
+    selectEditName() {
+      // Select all text in the input when focused for easier editing
+      setTimeout(() => {
+        const input = this.$refs.nameInput;
+        if (input) {
+          input.select();
+        }
+      }, 10);
+    },
+
+    updateLayerOpacity(index) {
+      let opacity = this.images[index].opacity;
+      if (opacity == null || isNaN(opacity)) {
+        opacity = 100;
+      }
+      this.images[index].opacity = Math.max(0, Math.min(100, opacity));
+    },
+
     toggleVisibility(index) {
       this.$set(this.images[index], 'visible', !this.images[index].visible);
     },
@@ -427,7 +482,8 @@ export default {
         y: original.y + 30,
         zIndex: this.images.length,
         visible: original.visible,
-        flipped: original.flipped
+        flipped: original.flipped,
+        opacity: original.opacity
       };
       this.images.push(newImage);
       this.selectLayer(this.images.length - 1);
