@@ -28,6 +28,11 @@
                @touchstart="startDrag($event, index)"
                :class="{ selected: selectedIndex === index }">
             <img :src="image.url" :alt="image.name" class="w-100 h-100" draggable="false">
+            <!-- Resize handles (corners) -->
+            <div v-for="handle in resizeHandles" :key="handle" class="resize-handle"
+                 :class="'resize-' + handle"
+                 @mousedown.stop.prevent="startResize($event, index, handle)"
+                 @touchstart.stop.prevent="startResize($event, index, handle)"></div>
           </div>
         </div>
       </div>
@@ -88,8 +93,17 @@ export default {
       dragStartX: 0,
       dragStartY: 0,
       dragImageIndex: -1,
+      isResizing: false,
+      resizeHandle: '',
+      resizeStartWidth: 0,
+      resizeStartHeight: 0,
+      resizeStartX: 0,
+      resizeStartY: 0,
+      resizeStartImgX: 0,
+      resizeStartImgY: 0,
       canvasWidth: 800,
-      canvasHeight: 600
+      canvasHeight: 600,
+      resizeHandles: ['top-left', 'top-right', 'bottom-left', 'bottom-right']
     };
   },
   mounted() {
@@ -97,15 +111,19 @@ export default {
     window.addEventListener('resize', this.updateCanvasSize);
     document.addEventListener('mousemove', this.performDrag);
     document.addEventListener('mouseup', this.endDrag);
+    document.addEventListener('mouseup', this.endResize);
     document.addEventListener('touchmove', this.performDrag);
     document.addEventListener('touchend', this.endDrag);
+    document.addEventListener('touchend', this.endResize);
   },
   beforeDestroy() {
     window.removeEventListener('resize', this.updateCanvasSize);
     document.removeEventListener('mousemove', this.performDrag);
     document.removeEventListener('mouseup', this.endDrag);
+    document.removeEventListener('mouseup', this.endResize);
     document.removeEventListener('touchmove', this.performDrag);
     document.removeEventListener('touchend', this.endDrag);
+    document.removeEventListener('touchend', this.endResize);
   },
   computed: {
     canvasStyle() {
@@ -142,18 +160,25 @@ export default {
         reader.onload = (e) => {
           const img = new Image();
           img.onload = () => {
+            // Auto-fit images larger than canvas while maintaining aspect ratio
             let width = img.width;
             let height = img.height;
-            const maxSize = 200;
-            if (width > maxSize || height > maxSize) {
-              const ratio = Math.min(maxSize / width, maxSize / height);
-              width = width * ratio;
-              height = height * ratio;
+            
+            const maxWidth = this.canvasWidth;
+            const maxHeight = this.canvasHeight;
+            
+            if (width > maxWidth || height > maxHeight) {
+              const ratio = Math.min(maxWidth / width, maxHeight / height);
+              width = Math.round(width * ratio);
+              height = Math.round(height * ratio);
             }
+            
             const newImage = {
               id: Date.now() + Math.random(),
               url: e.target.result,
               name: file.name,
+              originalWidth: img.width,
+              originalHeight: img.height,
               width: width,
               height: height,
               x: (this.canvasWidth - width) / 2,
@@ -184,7 +209,29 @@ export default {
       this.images[index].zIndex = this.images.length;
     },
 
+    startResize(event, index, handle) {
+      this.isResizing = true;
+      this.resizeHandle = handle;
+      this.resizeImageIndex = index;
+      this.selectLayer(index);
+      const canvasRect = this.$refs.canvas.getBoundingClientRect();
+      const clientX = event.type === 'touchstart' ? event.touches[0].clientX : event.clientX;
+      const clientY = event.type === 'touchstart' ? event.touches[0].clientY : event.clientY;
+      this.resizeStartX = clientX - canvasRect.left;
+      this.resizeStartY = clientY - canvasRect.top;
+      this.resizeStartWidth = this.images[index].width;
+      this.resizeStartHeight = this.images[index].height;
+      this.resizeStartImgX = this.images[index].x;
+      this.resizeStartImgY = this.images[index].y;
+      this.images[index].zIndex = this.images.length;
+    },
+
     performDrag(event) {
+      if (this.isResizing && this.resizeImageIndex !== undefined && this.resizeImageIndex !== -1) {
+        event.preventDefault();
+        this.performResize(event);
+        return;
+      }
       if (!this.isDragging || this.dragImageIndex === -1) return;
       event.preventDefault();
       const canvasRect = this.$refs.canvas.getBoundingClientRect();
@@ -196,15 +243,89 @@ export default {
         newX = event.clientX - canvasRect.left - this.dragStartX;
         newY = event.clientY - canvasRect.top - this.dragStartY;
       }
-      newX = Math.max(0, Math.min(newX, this.canvasWidth - this.images[this.dragImageIndex].width));
-      newY = Math.max(0, Math.min(newY, this.canvasHeight - this.images[this.dragImageIndex].height));
       this.images[this.dragImageIndex].x = newX;
       this.images[this.dragImageIndex].y = newY;
+      this.validateVisibility(this.images[this.dragImageIndex]);
+    },
+
+    performResize(event) {
+      if (!this.isResizing) return;
+      const idx = this.resizeImageIndex;
+      const img = this.images[idx];
+      const canvasRect = this.$refs.canvas.getBoundingClientRect();
+      const clientX = event.type === 'touchmove' ? event.touches[0].clientX : event.clientX;
+      const clientY = event.type === 'touchmove' ? event.touches[0].clientY : event.clientY;
+      const cx = clientX - canvasRect.left;
+      const cy = clientY - canvasRect.top;
+      const dx = cx - this.resizeStartX;
+      const dy = cy - this.resizeStartY;
+
+      const handle = this.resizeHandle;
+      let newX = this.resizeStartImgX;
+      let newY = this.resizeStartImgY;
+      let newWidth = this.resizeStartWidth;
+      let newHeight = this.resizeStartHeight;
+
+      if (handle === 'bottom-right') {
+        newWidth = Math.max(20, this.resizeStartWidth + dx);
+        newHeight = Math.max(20, this.resizeStartHeight + dy);
+      } else if (handle === 'bottom-left') {
+        newWidth = Math.max(20, this.resizeStartWidth - dx);
+        newHeight = Math.max(20, this.resizeStartHeight + dy);
+        newX = this.resizeStartImgX + dx;
+      } else if (handle === 'top-right') {
+        newWidth = Math.max(20, this.resizeStartWidth + dx);
+        newHeight = Math.max(20, this.resizeStartHeight - dy);
+        newY = this.resizeStartImgY + dy;
+      } else if (handle === 'top-left') {
+        newWidth = Math.max(20, this.resizeStartWidth - dx);
+        newHeight = Math.max(20, this.resizeStartHeight - dy);
+        newX = this.resizeStartImgX + dx;
+        newY = this.resizeStartImgY + dy;
+      }
+
+      img.width = newWidth;
+      img.height = newHeight;
+      img.x = newX;
+      img.y = newY;
+      this.validateVisibility(img);
+    },
+
+    validateVisibility(img) {
+      const minVisible = 50;
+      // Horizontal: at least 50px must overlap canvas
+      const hOverlapStart = Math.max(img.x, 0);
+      const hOverlapEnd = Math.min(img.x + img.width, this.canvasWidth);
+      const hOverlap = hOverlapEnd - hOverlapStart;
+      if (hOverlap < minVisible) {
+        if (img.x < 0) {
+          img.x = -(img.width - minVisible);
+        } else {
+          img.x = this.canvasWidth - minVisible;
+        }
+      }
+      // Vertical: at least 50px must overlap canvas
+      const vOverlapStart = Math.max(img.y, 0);
+      const vOverlapEnd = Math.min(img.y + img.height, this.canvasHeight);
+      const vOverlap = vOverlapEnd - vOverlapStart;
+      if (vOverlap < minVisible) {
+        if (img.y < 0) {
+          img.y = -(img.height - minVisible);
+        } else {
+          img.y = this.canvasHeight - minVisible;
+        }
+      }
     },
 
     endDrag() {
       this.isDragging = false;
       this.dragImageIndex = -1;
+    },
+
+    endResize() {
+      this.isResizing = false;
+      this.resizeImageIndex = -1;
+      this.resizeHandle = '';
     },
 
     selectLayer(index) {
@@ -382,5 +503,46 @@ export default {
 
 .controls {
   margin-top: 2rem;
+}
+
+/* Resize handles */
+.resize-handle {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: #007bff;
+  border: 2px solid #fff;
+  border-radius: 2px;
+  z-index: 10;
+  display: none;
+}
+
+.collage-item:hover .resize-handle,
+.collage-item.selected .resize-handle {
+  display: block;
+}
+
+.resize-handle.resize-top-left {
+  top: -6px;
+  left: -6px;
+  cursor: nwse-resize;
+}
+
+.resize-handle.resize-top-right {
+  top: -6px;
+  right: -6px;
+  cursor: nesw-resize;
+}
+
+.resize-handle.resize-bottom-left {
+  bottom: -6px;
+  left: -6px;
+  cursor: nesw-resize;
+}
+
+.resize-handle.resize-bottom-right {
+  bottom: -6px;
+  right: -6px;
+  cursor: nwse-resize;
 }
 </style>
