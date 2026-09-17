@@ -61,11 +61,11 @@
                 <div class="layer-info text-small text-muted">{{ image.width }}×{{ image.height }}px</div>
                 <div class="layer-opacity mt-1">
                   <div class="opacity-controls d-flex align-items-center gap-2">
-                    <div class="flex-grow">
+                    <div class="flex-grow-1">
                       <input type="range" class="form-range" min="0" max="100" step="1" v-model.number="image.opacity"
                              @input="updateLayerOpacity(index)">
                     </div>
-                    <span class="flex-grow text-muted text-xs ml-2">{{ image.opacity }}%</span>
+                    <span class="text-muted text-xs ml-2">{{ image.opacity }}%</span>
                   </div>
                 </div>
               </div>
