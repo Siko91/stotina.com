@@ -5,7 +5,7 @@
         <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-muted"></i>
         <p class="mb-2">Click to upload images</p>
         <p class="text-small text-muted">or drag & drop images here</p>
-        <input type="file" ref="fileInput" multiple accept="image/*" @change="handleFileUpload" style="display: none;">
+        <input type="file" ref="fileInput" multiple accept="image/png,image/jpeg,image/jpg,image/webp,image/bmp,image/tiff,image/x-icon,image/svg+xml" @change="handleFileUpload" style="display: none;">
       </div>
     </div>
 
@@ -193,7 +193,11 @@ export default {
     },
 
     processFiles(files) {
-      const validFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+      const validFiles = Array.from(files).filter(file => 
+        file.type.startsWith('image/') && 
+        !file.type.includes('gif') && 
+        !file.name.toLowerCase().endsWith('.gif')
+      );
       validFiles.forEach(file => {
         const reader = new FileReader();
         reader.onload = (e) => {
