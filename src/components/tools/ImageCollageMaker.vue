@@ -140,7 +140,7 @@ export default {
       canvasHeight: 600,
       // Scale factor for fitting canvas in container
       canvasScale: 1,
-      resizeHandles: ['top-left', 'top-right', 'bottom-left', 'bottom-right']
+      resizeHandles: ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'left', 'right', 'top', 'bottom']
     };
   },
   mounted() {
@@ -324,22 +324,80 @@ export default {
       let newWidth = this.resizeStartWidth;
       let newHeight = this.resizeStartHeight;
 
+      // Determine which axis the user is primarily dragging along
+      const absDx = Math.abs(dx);
+      const absDy = Math.abs(dy);
+      const dominantAxis = absDx >= absDy ? 'x' : 'y';
+
       if (handle === 'bottom-right') {
-        newWidth = Math.max(20, this.resizeStartWidth + dx);
-        newHeight = Math.max(20, this.resizeStartHeight + dy);
+        // Corner - maintain aspect ratio
+        const ratio = this.resizeStartHeight / this.resizeStartWidth;
+        if (dominantAxis === 'x') {
+          newWidth = Math.max(20, this.resizeStartWidth + dx);
+          newHeight = Math.max(20, newWidth * ratio);
+        } else {
+          newHeight = Math.max(20, this.resizeStartHeight + dy);
+          newWidth = Math.max(20, newHeight / ratio);
+        }
       } else if (handle === 'bottom-left') {
-        newWidth = Math.max(20, this.resizeStartWidth - dx);
-        newHeight = Math.max(20, this.resizeStartHeight + dy);
-        newX = this.resizeStartImgX + dx;
+        // Corner - maintain aspect ratio
+        // Opposite corner (top-right) stays fixed: top edge and right edge
+        const ratio = this.resizeStartHeight / this.resizeStartWidth;
+        if (dominantAxis === 'x') {
+          newWidth = Math.max(20, this.resizeStartWidth - dx);
+          newHeight = Math.max(20, newWidth * ratio);
+        } else {
+          newHeight = Math.max(20, this.resizeStartHeight + dy);
+          newWidth = Math.max(20, newHeight / ratio);
+        }
+        // Right edge stays fixed
+        newX = this.resizeStartImgX + this.resizeStartWidth - newWidth;
+        // Top edge stays fixed
+        newY = this.resizeStartImgY;
       } else if (handle === 'top-right') {
-        newWidth = Math.max(20, this.resizeStartWidth + dx);
-        newHeight = Math.max(20, this.resizeStartHeight - dy);
-        newY = this.resizeStartImgY + dy;
+        // Corner - maintain aspect ratio
+        // Opposite corner (bottom-left) stays fixed: left edge and bottom edge
+        const ratio = this.resizeStartHeight / this.resizeStartWidth;
+        if (dominantAxis === 'x') {
+          newWidth = Math.max(20, this.resizeStartWidth + dx);
+          newHeight = Math.max(20, newWidth * ratio);
+        } else {
+          newHeight = Math.max(20, this.resizeStartHeight - dy);
+          newWidth = Math.max(20, newHeight / ratio);
+        }
+        // Left edge stays fixed
+        newX = this.resizeStartImgX;
+        // Bottom edge stays fixed
+        newY = this.resizeStartImgY + this.resizeStartHeight - newHeight;
       } else if (handle === 'top-left') {
+        // Corner - maintain aspect ratio
+        // Opposite corner (bottom-right) stays fixed: right edge and bottom edge
+        const ratio = this.resizeStartHeight / this.resizeStartWidth;
+        if (dominantAxis === 'x') {
+          newWidth = Math.max(20, this.resizeStartWidth - dx);
+          newHeight = Math.max(20, newWidth * ratio);
+        } else {
+          newHeight = Math.max(20, this.resizeStartHeight - dy);
+          newWidth = Math.max(20, newHeight / ratio);
+        }
+        // Right edge stays fixed
+        newX = this.resizeStartImgX + this.resizeStartWidth - newWidth;
+        // Bottom edge stays fixed
+        newY = this.resizeStartImgY + this.resizeStartHeight - newHeight;
+      } else if (handle === 'left') {
+        // Side - width only
         newWidth = Math.max(20, this.resizeStartWidth - dx);
-        newHeight = Math.max(20, this.resizeStartHeight - dy);
         newX = this.resizeStartImgX + dx;
+      } else if (handle === 'right') {
+        // Side - width only
+        newWidth = Math.max(20, this.resizeStartWidth + dx);
+      } else if (handle === 'top') {
+        // Side - height only
+        newHeight = Math.max(20, this.resizeStartHeight - dy);
         newY = this.resizeStartImgY + dy;
+      } else if (handle === 'bottom') {
+        // Side - height only
+        newHeight = Math.max(20, this.resizeStartHeight + dy);
       }
 
       img.width = newWidth;
@@ -697,5 +755,42 @@ export default {
   bottom: -6px;
   right: -6px;
   cursor: nwse-resize;
+}
+
+/* Side handles - for independent width/height resizing */
+.resize-handle.resize-left {
+  left: -6px;
+  top: 50%;
+  margin-top: -6px;
+  width: 12px;
+  height: 12px;
+  cursor: ew-resize;
+}
+
+.resize-handle.resize-right {
+  right: -6px;
+  top: 50%;
+  margin-top: -6px;
+  width: 12px;
+  height: 12px;
+  cursor: ew-resize;
+}
+
+.resize-handle.resize-top {
+  top: -6px;
+  left: 50%;
+  margin-left: -6px;
+  width: 12px;
+  height: 12px;
+  cursor: ns-resize;
+}
+
+.resize-handle.resize-bottom {
+  bottom: -6px;
+  left: 50%;
+  margin-left: -6px;
+  width: 12px;
+  height: 12px;
+  cursor: ns-resize;
 }
 </style>
