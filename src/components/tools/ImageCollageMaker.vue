@@ -43,16 +43,16 @@
         <div class="mb-3">
           <h6>Layers</h6>
           <div class="layer-list">
-            <div v-for="(image, index) in images" :key="image.id" class="layer-item d-flex align-items-start p-2 border rounded mb-2"
-                 :class="{ 'bg-light': selectedIndex === index, 'layer-hidden': !image.visible }"
-                 @click="selectLayer(index)">
+            <div v-for="(image, index) in reversedImages" :key="image.id" class="layer-item d-flex align-items-start p-2 border rounded mb-2"
+                 :class="{ 'bg-light': selectedIndex === getOriginalIndex(index), 'layer-hidden': !image.visible }"
+                 @click="selectLayer(getOriginalIndex(index))">
               <div class="flex-shrink-0 me-3">
                 <img :src="image.url" :alt="image.name" class="layer-preview" draggable="false"
                      :class="{ 'layer-flipped': image.flipped }"
                      :style="{ opacity: (image.opacity != null ? image.opacity : 100) / 100 }">
               </div>
               <div class="flex-grow-1">
-                <div class="layer-name fw-bold" @dblclick="startRename(index)" v-if="editingIndex !== index">
+                <div class="layer-name fw-bold" @dblclick="startRename(getOriginalIndex(index))" v-if="editingIndex !== getOriginalIndex(index)">
                   {{ truncateFilename(image.name, 15) }}
                 </div>
                 <input v-else v-model="editName" @blur="finishRename" @keyup.enter="finishRename"
@@ -63,34 +63,34 @@
                   <div class="opacity-controls d-flex align-items-center gap-2">
                     <div class="flex-grow-1">
                       <input type="range" class="form-range" min="0" max="100" step="1" v-model.number="image.opacity"
-                             @input="updateLayerOpacity(index)">
+                          @input="updateLayerOpacity(getOriginalIndex(index))">
                     </div>
                     <span class="text-muted text-xs ml-2">{{ image.opacity }}%</span>
                   </div>
                 </div>
               </div>
               <div class="layer-controls d-flex flex-column me-2">
-                <button class="btn btn-sm btn-outline-secondary mb-1" @click.stop="toggleVisibility(index)"
+                <button class="btn btn-sm btn-outline-secondary mb-1" @click.stop="toggleVisibility(getOriginalIndex(index))"
                         :title="image.visible ? 'Hide layer' : 'Show layer'"
                         :class="{ 'btn-outline-secondary': image.visible, 'btn-outline-warning': !image.visible }">
                   <i :class="image.visible ? 'fas fa-eye' : 'fas fa-eye-slash'"></i>
                 </button>
-                <button class="btn btn-sm btn-outline-secondary mb-1" @click.stop="flipImage(index)" title="Flip left-right"
+                <button class="btn btn-sm btn-outline-secondary mb-1" @click.stop="flipImage(getOriginalIndex(index))" title="Flip left-right"
                         :class="{ 'active': image.flipped }">
                   <i class="fas fa-arrows-alt-h"></i>
                 </button>
-                <button class="btn btn-sm btn-outline-secondary" @click.stop="duplicateLayer(index)" title="Duplicate layer">
+                <button class="btn btn-sm btn-outline-secondary" @click.stop="duplicateLayer(getOriginalIndex(index))" title="Duplicate layer">
                   <i class="fas fa-copy"></i>
                 </button>
               </div>
               <div class="layer-controls d-flex flex-column">
-                <button class="btn btn-sm btn-outline-primary mb-1" @click.stop="moveLayerUp(index)" title="Move up">
+                <button class="btn btn-sm btn-outline-primary mb-1" @click.stop="moveLayerUp(getOriginalIndex(index))" title="Move up">
                   <i class="fas fa-arrow-up"></i>
                 </button>
-                <button class="btn btn-sm btn-outline-primary mb-1" @click.stop="moveLayerDown(index)" title="Move down">
+                <button class="btn btn-sm btn-outline-primary mb-1" @click.stop="moveLayerDown(getOriginalIndex(index))" title="Move down">
                   <i class="fas fa-arrow-down"></i>
                 </button>
-                <button class="btn btn-sm btn-outline-danger" @click.stop="removeLayer(index)" title="Remove">
+                <button class="btn btn-sm btn-outline-danger" @click.stop="removeLayer(getOriginalIndex(index))" title="Remove">
                   <i class="fas fa-trash"></i>
                 </button>
               </div>
@@ -163,6 +163,9 @@ export default {
     document.removeEventListener('touchend', this.endResize);
   },
   computed: {
+    reversedImages() {
+      return this.images.slice().reverse();
+    },
     canvasWrapperStyle() {
       // Apply scale to fit canvas in container while maintaining aspect ratio
       return {
@@ -211,7 +214,7 @@ export default {
             const maxHeight = this.canvasHeight;
             
             if (width > maxWidth || height > maxHeight) {
-              const ratio = Math.min(maxWidth / width, maxHeight / height);
+              const ratio = Math.min(maxWidth / width, maxHeight / height) * 0.95;
               width = Math.round(width * ratio);
               height = Math.round(height * ratio);
             }
@@ -444,26 +447,30 @@ export default {
       this.resizeHandle = '';
     },
 
+    getOriginalIndex(reversedIndex) {
+      return this.images.length - 1 - reversedIndex;
+    },
+
     selectLayer(index) {
       this.selectedIndex = index;
     },
 
     moveLayerUp(index) {
-      if (index <= 0) return;
-      const temp = this.images[index];
-      this.images.splice(index, 1);
-      this.images.splice(index - 1, 0, temp);
-      this.updateZIndices();
-      this.selectLayer(index - 1);
-    },
-
-    moveLayerDown(index) {
       if (index >= this.images.length - 1) return;
       const temp = this.images[index];
       this.images.splice(index, 1);
       this.images.splice(index + 1, 0, temp);
       this.updateZIndices();
       this.selectLayer(index + 1);
+    },
+
+    moveLayerDown(index) {
+      if (index <= 0) return;
+      const temp = this.images[index];
+      this.images.splice(index, 1);
+      this.images.splice(index - 1, 0, temp);
+      this.updateZIndices();
+      this.selectLayer(index - 1);
     },
 
     removeLayer(index) {
