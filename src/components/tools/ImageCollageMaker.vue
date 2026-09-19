@@ -10,7 +10,7 @@
     </div>
 
     <div class="row">
-      <div class="col-md-8 d-flex justify-content-center align-items-center p-1 p-sm-2 p-md-3" ref="canvasContainer">
+      <div class="col-md-8 col-sm-12 d-flex justify-content-center align-items-center p-1 p-sm-1 p-md-3" ref="canvasContainer">
         <div id="canvas-wrapper" class="border border-secondary rounded position-relative overflow-hidden" ref="canvas" :style="[canvasWrapperStyle, checkerboardStyle]">
           <div class="background-overlay" :style="backgroundOverlayStyle"></div>
           <div v-for="(image, index) in images" :key="image.id" v-show="image.visible" class="collage-item"
@@ -40,7 +40,7 @@
         </div>
       </div>
 
-      <div class="col-md-4">
+      <div class="col-md-4 col-sm-12">
         <div class="mb-3">
           <h6>Layers</h6>
           <div class="layer-list">
