@@ -11,7 +11,8 @@
 
     <div class="row">
       <div class="col-md-8 d-flex justify-content-center align-items-center p-1 p-sm-2 p-md-3" ref="canvasContainer">
-        <div id="canvas-wrapper" class="border border-secondary rounded position-relative bg-light overflow-hidden" ref="canvas" :style="canvasWrapperStyle">
+        <div id="canvas-wrapper" class="border border-secondary rounded position-relative overflow-hidden" ref="canvas" :style="[canvasWrapperStyle, checkerboardStyle]">
+          <div class="background-overlay" :style="backgroundOverlayStyle"></div>
           <div v-for="(image, index) in images" :key="image.id" v-show="image.visible" class="collage-item"
                :style="{
                  position: 'absolute',
@@ -100,6 +101,25 @@
             No images added yet
           </div>
         </div>
+
+        <div class="mb-3">
+          <h6>Background</h6>
+          <div class="background-config p-3 border rounded bg-white">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <label for="background-color" class="mb-0">Color</label>
+              <input id="background-color" type="color" v-model="backgroundColor" class="form-control form-control-color"
+                     :style="{ width: '60px', height: '38px', padding: '2px' }">
+            </div>
+            <div class="d-flex align-items-center justify-content-between">
+              <label for="background-opacity" class="mb-0">Opacity</label>
+              <div class="d-flex align-items-center flex-grow-1 ms-2 gap-2">
+                <input id="background-opacity" type="range" class="form-range flex-grow-1" min="0" max="100" step="1"
+                       v-model.number="backgroundOpacity">
+                <span class="text-muted text-xs">{{ backgroundOpacity }}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -140,7 +160,10 @@ export default {
       canvasHeight: 600,
       // Scale factor for fitting canvas in container
       canvasScale: 1,
-      resizeHandles: ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'left', 'right', 'top', 'bottom']
+      resizeHandles: ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'left', 'right', 'top', 'bottom'],
+      // Background settings
+      backgroundColor: '#FFFFFF',
+      backgroundOpacity: 100
     };
   },
   mounted() {
@@ -172,6 +195,26 @@ export default {
         transform: `scale(${this.canvasScale})`,
         width: `${this.canvasWidth}px`,
         height: `${this.canvasHeight}px`
+      };
+    },
+    checkerboardStyle() {
+      return {
+        backgroundImage: 'url(/images/assets/transparent-background-small.jpg)',
+        backgroundRepeat: 'repeat',
+        backgroundSize: 'auto'
+      };
+    },
+    backgroundOverlayStyle() {
+      return {
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        width: '100%',
+        height: '100%',
+        backgroundColor: this.backgroundColor,
+        opacity: this.backgroundOpacity / 100,
+        zIndex: 0,
+        pointerEvents: 'none'
       };
     }
   },
@@ -580,8 +623,12 @@ export default {
       canvas.width = this.canvasWidth;
       canvas.height = this.canvasHeight;
       const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#ffffff';
+
+      // Apply background color with opacity
+      ctx.globalAlpha = this.backgroundOpacity / 100;
+      ctx.fillStyle = this.backgroundColor;
       ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
+      ctx.globalAlpha = 1;
       const sortedImages = [...this.images].sort((a, b) => a.zIndex - b.zIndex);
       let loaded = 0;
       sortedImages.forEach(image => {
@@ -717,6 +764,35 @@ export default {
 
 #canvas-wrapper {
   touch-action: none;
+}
+
+/* Background configuration box */
+.background-config {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+}
+
+.background-config label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #495057;
+}
+
+.background-config .form-control-color {
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.background-config .form-range {
+  height: 6px;
+}
+
+.background-config .text-xs {
+  font-size: 0.75rem;
+  min-width: 35px;
+  text-align: right;
 }
 
 .controls {
