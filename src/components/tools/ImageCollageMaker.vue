@@ -29,50 +29,60 @@
       >
         <div
           id="canvas-wrapper"
-          class="border border-secondary rounded position-relative overflow-hidden"
-          ref="canvas"
-          :style="[canvasWrapperStyle, checkerboardStyle]"
+          class="p-0 border border-secondary rounded position-relative overflow-hidden"
+          ref="canvasWrapper"
+          :style="[canvasWrapperStyle]"
         >
-          <div class="background-overlay" :style="backgroundOverlayStyle"></div>
           <div
-            v-for="(image, index) in images"
-            :key="image.id"
-            v-show="image.visible"
-            class="collage-item"
-            :style="{
-              position: 'absolute',
-              left: image.x + 'px',
-              top: image.y + 'px',
-              width: image.width + 'px',
-              height: image.height + 'px',
-              zIndex: image.zIndex,
-              border: selectedIndex === index ? '2px solid #007bff' : 'none',
-              borderRadius: '4px',
-              cursor: 'move',
-              transform: image.flipped ? 'scaleX(-1)' : '',
-            }"
-            @mousedown="startDrag($event, index)"
-            @touchstart="startDrag($event, index)"
-            :class="{ selected: selectedIndex === index }"
+            id="border border-secondary d-block m-0"
+            class="border"
+            ref="canvas"
+            :style="[canvasStyle, checkerboardStyle]"
           >
-            <img
-              :src="image.url"
-              :alt="image.name"
-              class="w-100 h-100"
-              draggable="false"
-              :style="{
-                opacity: (image.opacity != null ? image.opacity : 100) / 100,
-              }"
-            />
-            <!-- Resize handles (corners) -->
             <div
-              v-for="handle in resizeHandles"
-              :key="handle"
-              class="resize-handle"
-              :class="'resize-' + handle"
-              @mousedown.stop.prevent="startResize($event, index, handle)"
-              @touchstart.stop.prevent="startResize($event, index, handle)"
+              class="background-overlay"
+              :style="backgroundOverlayStyle"
             ></div>
+            <div
+              v-for="(image, index) in images"
+              :key="image.id"
+              v-show="image.visible"
+              class="collage-item"
+              :style="{
+                position: 'absolute',
+                left: image.x + 'px',
+                top: image.y + 'px',
+                width: image.width + 'px',
+                height: image.height + 'px',
+                zIndex: image.zIndex,
+                border: selectedIndex === index ? '2px solid #007bff' : 'none',
+                borderRadius: '4px',
+                cursor: 'move',
+                transform: image.flipped ? 'scaleX(-1)' : '',
+              }"
+              @mousedown="startDrag($event, index)"
+              @touchstart="startDrag($event, index)"
+              :class="{ selected: selectedIndex === index }"
+            >
+              <img
+                :src="image.url"
+                :alt="image.name"
+                class="w-100 h-100"
+                draggable="false"
+                :style="{
+                  opacity: (image.opacity != null ? image.opacity : 100) / 100,
+                }"
+              />
+              <!-- Resize handles (corners) -->
+              <div
+                v-for="handle in resizeHandles"
+                :key="handle"
+                class="resize-handle"
+                :class="'resize-' + handle"
+                @mousedown.stop.prevent="startResize($event, index, handle)"
+                @touchstart.stop.prevent="startResize($event, index, handle)"
+              ></div>
+            </div>
           </div>
         </div>
       </div>
@@ -291,11 +301,16 @@ export default {
       // Background settings
       backgroundColor: "#FFFFFF",
       backgroundOpacity: 100,
+      resizeObserver: undefined,
     };
   },
   mounted() {
-    this.resizeContainer();
-    window.addEventListener("resize", this.resizeContainer);
+    this.onResizeCanvasWrapper();
+    this.resizeObserver = new ResizeObserver(() =>
+      this.onResizeCanvasWrapper(),
+    );
+    this.resizeObserver.observe(this.$refs.canvas);
+    window.addEventListener("resize", this.onResizeCanvasWrapper);
     document.addEventListener("mousemove", this.performDrag);
     document.addEventListener("mouseup", this.endDrag);
     document.addEventListener("mouseup", this.endResize);
@@ -304,7 +319,7 @@ export default {
     document.addEventListener("touchend", this.endResize);
   },
   beforeDestroy() {
-    window.removeEventListener("resize", this.resizeContainer);
+    if (this.resizeObserver) this.resizeObserver.disconnect();
     document.removeEventListener("mousemove", this.performDrag);
     document.removeEventListener("mouseup", this.endDrag);
     document.removeEventListener("mouseup", this.endResize);
@@ -319,7 +334,16 @@ export default {
     canvasWrapperStyle() {
       // Apply scale to fit canvas in container while maintaining aspect ratio
       return {
+        width: `100% !important`,
+        height: `auto !important`,
+        "aspect-ratio": `${this.canvasWidth} / ${this.canvasHeight}`,
+      };
+    },
+    canvasStyle() {
+      // Apply scale to fit canvas in container while maintaining aspect ratio
+      return {
         transform: `scale(${this.canvasScale})`,
+        transformOrigin: `top left`,
         width: `${this.canvasWidth}px`,
         height: `${this.canvasHeight}px`,
       };
@@ -814,15 +838,10 @@ export default {
       });
     },
 
-    resizeContainer() {
-      const container = this.$refs.canvasContainer;
-      if (container) {
-        const containerWidth = container.clientWidth;
-        const containerHeight = container.clientHeight;
-        // Calculate scale to fit canvas while maintaining aspect ratio
-        const scaleX = containerWidth / this.canvasWidth;
-        const scaleY = containerHeight / this.canvasHeight;
-        this.canvasScale = Math.min(scaleX, scaleY, 1); // Don't upscale beyond 100%
+    onResizeCanvasWrapper() {
+      const wrapper = this.$refs.canvasWrapper;
+      if (wrapper) {
+        this.canvasScale = wrapper.clientWidth / this.canvasWidth;
       }
     },
 
