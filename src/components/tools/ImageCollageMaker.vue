@@ -57,7 +57,8 @@
                 zIndex: image.zIndex,
                 border: selectedIndex === index ? '2px solid #007bff' : 'none',
                 borderRadius: '4px',
-                cursor: 'move',
+                cursor: image.locked ? undefined : 'move',
+                pointerEvents: image.locked ? 'none' : 'auto',
                 transform: image.flipped ? 'scaleX(-1)' : '',
               }"
               @mousedown="startDrag($event, index)"
@@ -98,6 +99,7 @@
               :class="{
                 'bg-light': selectedIndex === getOriginalIndex(index),
                 'layer-hidden': !image.visible,
+                'locked': image.locked,
               }"
               @click="selectLayer(getOriginalIndex(index))"
             >
@@ -153,6 +155,23 @@
                     </div>
                   </div>
                 </div>
+              </div>
+              <div class="layer-controls d-flex flex-column me-2 justify-content-between">
+                <div></div>
+                <div></div>
+                <button
+                  class="btn btn-sm btn-outline-secondary mb-1"
+                  @click.stop="toggleLock(getOriginalIndex(index))"
+                  :title="image.locked ? 'Unlock layer' : 'Lock layer'"
+                  :class="{
+                    'btn-outline-warning': image.locked,
+                    'active': image.locked,
+                  }"
+                >
+                  <i
+                    :class="image.locked ? 'fas fa-lock' : 'fas fa-lock-open'"
+                  ></i>
+                </button>
               </div>
               <div class="layer-controls d-flex flex-column me-2">
                 <button
@@ -429,6 +448,7 @@ export default {
               visible: true,
               flipped: false,
               opacity: 100,
+              locked: false,
             };
             this.images.push(newImage);
             this.selectLayer(this.images.length - 1);
@@ -440,6 +460,7 @@ export default {
     },
 
     startDrag(event, index) {
+      if (this.images[index].locked) return;
       this.isDragging = true;
       this.dragImageIndex = index;
       this.selectLayer(index);
@@ -457,10 +478,18 @@ export default {
         this.dragStartX = event.clientX - rectLeft - this.images[index].x;
         this.dragStartY = event.clientY - rectTop - this.images[index].y;
       }
-      this.images[index].zIndex = this.images.length;
+      const lockedZIndices = this.images
+        .filter((img) => img.locked)
+        .map((img) => img.zIndex);
+      if (lockedZIndices.length > 0) {
+        this.images[index].zIndex = Math.min(...lockedZIndices) - 1;
+      } else {
+        this.images[index].zIndex = this.images.length;
+      }
     },
 
     startResize(event, index, handle) {
+      if (this.images[index].locked) return;
       this.isResizing = true;
       this.resizeHandle = handle;
       this.resizeImageIndex = index;
@@ -480,7 +509,17 @@ export default {
       this.resizeStartHeight = this.images[index].height;
       this.resizeStartImgX = this.images[index].x;
       this.resizeStartImgY = this.images[index].y;
-      this.images[index].zIndex = this.images.length;
+      this.images[index].zIndex = this.getAvailableZIndex();
+    },
+
+    getAvailableZIndex() {
+      const lockedZIndices = this.images
+        .filter((img) => img.locked)
+        .map((img) => img.zIndex);
+      if (lockedZIndices.length > 0) {
+        return Math.min(...lockedZIndices) - 1;
+      }
+      return this.images.length;
     },
 
     performDrag(event) {
@@ -743,6 +782,11 @@ export default {
       this.$set(this.images[index], "flipped", !img.flipped);
     },
 
+    toggleLock(index) {
+      const img = this.images[index];
+      this.$set(this.images[index], "locked", !img.locked);
+    },
+
     duplicateLayer(index) {
       const original = this.images[index];
       const newImage = {
@@ -759,6 +803,7 @@ export default {
         visible: original.visible,
         flipped: original.flipped,
         opacity: original.opacity,
+        locked: original.locked,
       };
       this.images.push(newImage);
       this.selectLayer(this.images.length - 1);
@@ -1039,5 +1084,20 @@ export default {
   width: 12px;
   height: 12px;
   cursor: ns-resize;
+}
+/* Locked layer styles */
+.layer-item.locked {
+  border-color: #ccc;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Visually indicate locked state on the layer item */
+.layer-item.locked .layer-preview {
+  filter: grayscale(100%) opacity(0.5);
+}
+
+/* Optional: add a subtle lock icon near the lock button */
+.layer-item.locked .layer-name {
+  color: #6c757d;
 }
 </style>
