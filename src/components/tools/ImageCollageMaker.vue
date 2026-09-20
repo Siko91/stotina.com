@@ -499,19 +499,13 @@ export default {
       this.dragImageIndex = index;
       this.selectLayer(index);
       const canvasRect = this.$refs.canvas.getBoundingClientRect();
-      // Adjust for CSS scale - divide by canvasScale to get actual canvas coordinates
       const scale = this.canvasScale || 1;
-      const rectLeft = canvasRect.left / scale;
-      const rectTop = canvasRect.top / scale;
-      if (event.type === "touchstart") {
-        this.dragStartX =
-          event.touches[0].clientX - rectLeft - this.images[index].x;
-        this.dragStartY =
-          event.touches[0].clientY - rectTop - this.images[index].y;
-      } else {
-        this.dragStartX = event.clientX - rectLeft - this.images[index].x;
-        this.dragStartY = event.clientY - rectTop - this.images[index].y;
-      }
+      const viewportX = event.type === "touchstart" ? event.touches[0].clientX : event.clientX;
+      const viewportY = event.type === "touchstart" ? event.touches[0].clientY : event.clientY;
+      const canvasX = (viewportX - canvasRect.left) / scale;
+      const canvasY = (viewportY - canvasRect.top) / scale;
+      this.dragStartX = canvasX - this.images[index].x;
+      this.dragStartY = canvasY - this.images[index].y;
       const lockedZIndices = this.images
         .filter((img) => img.locked)
         .map((img) => img.zIndex);
@@ -529,16 +523,13 @@ export default {
       this.resizeImageIndex = index;
       this.selectLayer(index);
       const canvasRect = this.$refs.canvas.getBoundingClientRect();
-      // Adjust for CSS scale - divide by canvasScale to get actual canvas coordinates
       const scale = this.canvasScale || 1;
-      const rectLeft = canvasRect.left / scale;
-      const rectTop = canvasRect.top / scale;
-      const clientX =
-        event.type === "touchstart" ? event.touches[0].clientX : event.clientX;
-      const clientY =
-        event.type === "touchstart" ? event.touches[0].clientY : event.clientY;
-      this.resizeStartX = clientX - rectLeft;
-      this.resizeStartY = clientY - rectTop;
+      const viewportX = event.type === "touchstart" ? event.touches[0].clientX : event.clientX;
+      const viewportY = event.type === "touchstart" ? event.touches[0].clientY : event.clientY;
+      const canvasX = (viewportX - canvasRect.left) / scale;
+      const canvasY = (viewportY - canvasRect.top) / scale;
+      this.resizeStartX = canvasX;
+      this.resizeStartY = canvasY;
       this.resizeStartWidth = this.images[index].width;
       this.resizeStartHeight = this.images[index].height;
       this.resizeStartImgX = this.images[index].x;
@@ -569,13 +560,14 @@ export default {
       if (!this.isDragging || this.dragImageIndex === -1) return;
       event.preventDefault();
       const canvasRect = this.$refs.canvas.getBoundingClientRect();
+      const scale = this.canvasScale || 1;
       let newX, newY;
       if (event.type === "touchmove") {
-        newX = event.touches[0].clientX - canvasRect.left - this.dragStartX;
-        newY = event.touches[0].clientY - canvasRect.top - this.dragStartY;
+        newX = (event.touches[0].clientX - canvasRect.left) / scale - this.dragStartX;
+        newY = (event.touches[0].clientY - canvasRect.top) / scale - this.dragStartY;
       } else {
-        newX = event.clientX - canvasRect.left - this.dragStartX;
-        newY = event.clientY - canvasRect.top - this.dragStartY;
+        newX = (event.clientX - canvasRect.left) / scale - this.dragStartX;
+        newY = (event.clientY - canvasRect.top) / scale - this.dragStartY;
       }
       this.images[this.dragImageIndex].x = newX;
       this.images[this.dragImageIndex].y = newY;
@@ -587,18 +579,13 @@ export default {
       const idx = this.resizeImageIndex;
       const img = this.images[idx];
       const canvasRect = this.$refs.canvas.getBoundingClientRect();
-      // Adjust for CSS scale - divide by canvasScale to get actual canvas coordinates
       const scale = this.canvasScale || 1;
-      const rectLeft = canvasRect.left / scale;
-      const rectTop = canvasRect.top / scale;
-      const clientX =
-        event.type === "touchmove" ? event.touches[0].clientX : event.clientX;
-      const clientY =
-        event.type === "touchmove" ? event.touches[0].clientY : event.clientY;
-      const cx = clientX - rectLeft;
-      const cy = clientY - rectTop;
-      const dx = cx - this.resizeStartX;
-      const dy = cy - this.resizeStartY;
+      const viewportX = event.type === "touchmove" ? event.touches[0].clientX : event.clientX;
+      const viewportY = event.type === "touchmove" ? event.touches[0].clientY : event.clientY;
+      const canvasX = (viewportX - canvasRect.left) / scale;
+      const canvasY = (viewportY - canvasRect.top) / scale;
+      const dx = canvasX - this.resizeStartX;
+      const dy = canvasY - this.resizeStartY;
 
       const handle = this.resizeHandle;
       let newX = this.resizeStartImgX;
