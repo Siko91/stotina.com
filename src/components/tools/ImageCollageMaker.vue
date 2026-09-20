@@ -59,7 +59,7 @@
                 borderRadius: '4px',
                 cursor: image.locked ? undefined : 'move',
                 pointerEvents: image.locked ? 'none' : 'auto',
-                transform: image.flipped ? 'scaleX(-1)' : '',
+                transform: `rotate(${image.angle}deg) ${image.flipped ? 'scaleX(-1)' : ''}`,
               }"
               @mousedown="startDrag($event, index)"
               @touchstart="startDrag($event, index)"
@@ -82,6 +82,14 @@
                 :class="'resize-' + handle"
                 @mousedown.stop.prevent="startResize($event, index, handle)"
                 @touchstart.stop.prevent="startResize($event, index, handle)"
+              ></div>
+
+              <div
+                class="rotate-handle"
+                v-show="images[index].visible && !images[index].locked"
+                style="left: 50%; top: -12px;"
+                @mousedown.stop.prevent="startRotate($event, index)"
+                @touchstart.stop.prevent="startRotate($event, index)"
               ></div>
             </div>
           </div>
@@ -157,8 +165,6 @@
                 </div>
               </div>
               <div class="layer-controls d-flex flex-column me-2 justify-content-between">
-                <div></div>
-                <div></div>
                 <button
                   class="btn btn-sm btn-outline-secondary mb-1"
                   @click.stop="toggleLock(getOriginalIndex(index))"
@@ -172,8 +178,6 @@
                     :class="image.locked ? 'fas fa-lock' : 'fas fa-lock-open'"
                   ></i>
                 </button>
-              </div>
-              <div class="layer-controls d-flex flex-column me-2">
                 <button
                   class="btn btn-sm btn-outline-secondary mb-1"
                   @click.stop="toggleVisibility(getOriginalIndex(index))"
@@ -188,19 +192,35 @@
                   ></i>
                 </button>
                 <button
+                  class="btn btn-sm btn-outline-secondary"
+                  @click.stop="duplicateLayer(getOriginalIndex(index))"
+                  title="Duplicate layer"
+                >
+                  <i class="fas fa-copy"></i>
+                </button>
+              </div>
+              <div class="layer-controls d-flex flex-column me-2 mx-1">
+                <button
+                  class="btn btn-sm btn-outline-secondary mb-1"
+                  @click.stop="setImageAngle(getOriginalIndex(index), images[getOriginalIndex(index)].angle + 45)"
+                  title="Rotate 45 degrees clockwise"
+                >
+                  <i class="fas fa-arrow-right"></i>
+                </button>
+                <button
+                  class="btn btn-sm btn-outline-secondary mb-1"
+                  @click.stop="setImageAngle(getOriginalIndex(index), images[getOriginalIndex(index)].angle - 45)"
+                  title="Rotate 45 degrees clockwise"
+                >
+                  <i class="fas fa-arrow-left"></i>
+                </button>
+                <button
                   class="btn btn-sm btn-outline-secondary mb-1"
                   @click.stop="flipImage(getOriginalIndex(index))"
                   title="Flip left-right"
                   :class="{ active: image.flipped }"
                 >
                   <i class="fas fa-arrows-alt-h"></i>
-                </button>
-                <button
-                  class="btn btn-sm btn-outline-secondary"
-                  @click.stop="duplicateLayer(getOriginalIndex(index))"
-                  title="Duplicate layer"
-                >
-                  <i class="fas fa-copy"></i>
                 </button>
               </div>
               <div class="layer-controls d-flex flex-column">
@@ -302,6 +322,11 @@ export default {
       resizeStartY: 0,
       resizeStartImgX: 0,
       resizeStartImgY: 0,
+      isRotating: false,
+      rotationImageIndex: -1,
+      rotationStartAngle: 0,
+      rotationCenterX: 0,
+      rotationCenterY: 0,
       // Fixed canvas dimensions - these never change
       canvasWidth: 1600,
       canvasHeight: 1200,
@@ -333,18 +358,26 @@ export default {
     document.addEventListener("mousemove", this.performDrag);
     document.addEventListener("mouseup", this.endDrag);
     document.addEventListener("mouseup", this.endResize);
+    document.addEventListener("mousemove", this.performRotate);
+    document.addEventListener("mouseup", this.endRotate);
     document.addEventListener("touchmove", this.performDrag);
     document.addEventListener("touchend", this.endDrag);
     document.addEventListener("touchend", this.endResize);
+    document.addEventListener("touchmove", this.performRotate);
+    document.addEventListener("touchend", this.endRotate);
   },
   beforeDestroy() {
     if (this.resizeObserver) this.resizeObserver.disconnect();
     document.removeEventListener("mousemove", this.performDrag);
     document.removeEventListener("mouseup", this.endDrag);
     document.removeEventListener("mouseup", this.endResize);
+    document.removeEventListener("mousemove", this.performRotate);
+    document.removeEventListener("mouseup", this.endRotate);
     document.removeEventListener("touchmove", this.performDrag);
     document.removeEventListener("touchend", this.endDrag);
     document.removeEventListener("touchend", this.endResize);
+    document.removeEventListener("touchmove", this.performRotate);
+    document.removeEventListener("touchend", this.endRotate);
   },
   computed: {
     reversedImages() {
@@ -448,6 +481,7 @@ export default {
               visible: true,
               flipped: false,
               opacity: 100,
+              angle: 0,
               locked: false,
             };
             this.images.push(newImage);
@@ -686,6 +720,54 @@ export default {
       this.dragImageIndex = -1;
     },
 
+    startRotate(event, index) {
+      const img = this.images[index];
+      this.rotationImageIndex = index;
+      const rect = this.$refs.canvas.getBoundingClientRect();
+      const scale = this.canvasScale || 1;
+      const centerX = rect.left / scale + img.x + img.width / 2;
+      const centerY = rect.top / scale + img.y + img.height / 2;
+      const clientX =
+        event.type === "touchstart" ? event.touches[0].clientX : event.clientX;
+      const clientY =
+        event.type === "touchstart" ? event.touches[0].clientY : event.clientY;
+      this.rotationStartAngle =
+        (Math.atan2(clientY / scale - centerY, clientX / scale - centerX) *
+          180) /
+        Math.PI -
+        (img.angle || 0);
+      this.rotationCenterX = centerX;
+      this.rotationCenterY = centerY;
+      this.isRotating = true;
+      this.selectLayer(index);
+    },
+
+    setImageAngle(index, setAngleTo) {
+      const img = this.images[index];
+      img.angle = ((setAngleTo % 360) + 360) % 360;
+    },
+
+    performRotate(event) {
+      if (!this.isRotating || this.rotationImageIndex === -1) return;
+      event.preventDefault();
+      const scale = this.canvasScale || 1;
+      const clientX =
+        event.type === "touchmove" ? event.touches[0].clientX : event.clientX;
+      const clientY =
+        event.type === "touchmove" ? event.touches[0].clientY : event.clientY;
+      const dx = clientX / scale - this.rotationCenterX;
+      const dy = clientY / scale - this.rotationCenterY;
+      let angle =
+        (Math.atan2(dy, dx) * 180) / Math.PI - this.rotationStartAngle;
+      angle = Math.round(angle / 5) * 5;
+      this.setImageAngle(this.rotationImageIndex, angle)
+    },
+
+    endRotate() {
+      this.isRotating = false;
+      this.rotationImageIndex = -1;
+    },
+
     endResize() {
       this.isResizing = false;
       this.resizeImageIndex = -1;
@@ -803,6 +885,7 @@ export default {
         visible: original.visible,
         flipped: original.flipped,
         opacity: original.opacity,
+        angle: original.angle,
         locked: original.locked,
       };
       this.images.push(newImage);
@@ -1008,20 +1091,39 @@ export default {
   margin-top: 2rem;
 }
 
-/* Resize handles */
+/* handles */
+
 .resize-handle {
-  position: absolute;
   width: 12px;
   height: 12px;
   background: #007bff;
   border: 2px solid #fff;
   border-radius: 2px;
+}
+
+.rotate-handle {
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border: 2px solid #007bff;
+  border-radius: 2px;
+
+  top: -50px !important;
+  left: 50%;
+  margin-left: -8px;
+  cursor: grab;
+}
+
+.resize-handle, .rotate-handle {
+  position: absolute;
   z-index: 10;
   display: none;
 }
 
 .collage-item:hover .resize-handle,
-.collage-item.selected .resize-handle {
+.collage-item.selected .resize-handle ,
+.collage-item.selected .rotate-handle ,
+.collage-item.selected .rotate-handle {
   display: block;
 }
 
@@ -1036,6 +1138,12 @@ export default {
   right: -6px;
   cursor: nesw-resize;
 }
+
+.rotate-handle:hover {
+  background: #ffc107;
+  box-shadow: 0 0 5px rgba(255, 193, 7, 0.5);
+}
+
 
 .resize-handle.resize-bottom-left {
   bottom: -6px;
