@@ -1,41 +1,78 @@
 <template>
   <div class="image-collage-container">
-    <div class="upload-area border border-dashed rounded p-4 text-center mb-4" @click="browseImages" @dragover.prevent @dragleave.prevent @drop.prevent="handleFileDrop">
+    <div
+      class="upload-area border border-dashed rounded p-4 text-center mb-4"
+      @click="browseImages"
+      @dragover.prevent
+      @dragleave.prevent
+      @drop.prevent="handleFileDrop"
+    >
       <div>
         <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-muted"></i>
         <p class="mb-2">Click to upload images</p>
         <p class="text-small text-muted">or drag & drop images here</p>
-        <input type="file" ref="fileInput" multiple accept="image/png,image/jpeg,image/jpg,image/webp,image/bmp,image/tiff,image/x-icon,image/svg+xml" @change="handleFileUpload" style="display: none;">
+        <input
+          type="file"
+          ref="fileInput"
+          multiple
+          accept="image/png,image/jpeg,image/jpg,image/webp,image/bmp,image/tiff,image/x-icon,image/svg+xml"
+          @change="handleFileUpload"
+          style="display: none;"
+        />
       </div>
     </div>
 
     <div class="row">
-      <div class="col-md-8 col-sm-12 d-flex justify-content-center align-items-center p-1 p-sm-1 p-md-3" ref="canvasContainer">
-        <div id="canvas-wrapper" class="border border-secondary rounded position-relative overflow-hidden" ref="canvas" :style="[canvasWrapperStyle, checkerboardStyle]">
+      <div
+        class="col-md-8 col-sm-12 d-flex justify-content-center align-items-center p-1 p-sm-1 p-md-3"
+        ref="canvasContainer"
+      >
+        <div
+          id="canvas-wrapper"
+          class="border border-secondary rounded position-relative overflow-hidden"
+          ref="canvas"
+          :style="[canvasWrapperStyle, checkerboardStyle]"
+        >
           <div class="background-overlay" :style="backgroundOverlayStyle"></div>
-          <div v-for="(image, index) in images" :key="image.id" v-show="image.visible" class="collage-item"
-               :style="{
-                 position: 'absolute',
-                 left: image.x + 'px',
-                 top: image.y + 'px',
-                 width: image.width + 'px',
-                 height: image.height + 'px',
-                 zIndex: image.zIndex,
-                 border: selectedIndex === index ? '2px solid #007bff' : 'none',
-                 borderRadius: '4px',
-                 cursor: 'move',
-                 transform: image.flipped ? 'scaleX(-1)' : ''
-               }"
-               @mousedown="startDrag($event, index)"
-               @touchstart="startDrag($event, index)"
-               :class="{ selected: selectedIndex === index }">
-            <img :src="image.url" :alt="image.name" class="w-100 h-100" draggable="false"
-                 :style="{ opacity: (image.opacity != null ? image.opacity : 100) / 100 }">
+          <div
+            v-for="(image, index) in images"
+            :key="image.id"
+            v-show="image.visible"
+            class="collage-item"
+            :style="{
+              position: 'absolute',
+              left: image.x + 'px',
+              top: image.y + 'px',
+              width: image.width + 'px',
+              height: image.height + 'px',
+              zIndex: image.zIndex,
+              border: selectedIndex === index ? '2px solid #007bff' : 'none',
+              borderRadius: '4px',
+              cursor: 'move',
+              transform: image.flipped ? 'scaleX(-1)' : '',
+            }"
+            @mousedown="startDrag($event, index)"
+            @touchstart="startDrag($event, index)"
+            :class="{ selected: selectedIndex === index }"
+          >
+            <img
+              :src="image.url"
+              :alt="image.name"
+              class="w-100 h-100"
+              draggable="false"
+              :style="{
+                opacity: (image.opacity != null ? image.opacity : 100) / 100,
+              }"
+            />
             <!-- Resize handles (corners) -->
-            <div v-for="handle in resizeHandles" :key="handle" class="resize-handle"
-                 :class="'resize-' + handle"
-                 @mousedown.stop.prevent="startResize($event, index, handle)"
-                 @touchstart.stop.prevent="startResize($event, index, handle)"></div>
+            <div
+              v-for="handle in resizeHandles"
+              :key="handle"
+              class="resize-handle"
+              :class="'resize-' + handle"
+              @mousedown.stop.prevent="startResize($event, index, handle)"
+              @touchstart.stop.prevent="startResize($event, index, handle)"
+            ></div>
           </div>
         </div>
       </div>
@@ -44,54 +81,119 @@
         <div class="mb-3">
           <h6>Layers</h6>
           <div class="layer-list">
-            <div v-for="(image, index) in reversedImages" :key="image.id" class="layer-item d-flex align-items-start p-2 border rounded mb-2"
-                 :class="{ 'bg-light': selectedIndex === getOriginalIndex(index), 'layer-hidden': !image.visible }"
-                 @click="selectLayer(getOriginalIndex(index))">
+            <div
+              v-for="(image, index) in reversedImages"
+              :key="image.id"
+              class="layer-item d-flex align-items-start p-2 border rounded mb-2"
+              :class="{
+                'bg-light': selectedIndex === getOriginalIndex(index),
+                'layer-hidden': !image.visible,
+              }"
+              @click="selectLayer(getOriginalIndex(index))"
+            >
               <div class="flex-shrink-0 me-3">
-                <img :src="image.url" :alt="image.name" class="layer-preview" draggable="false"
-                     :class="{ 'layer-flipped': image.flipped }"
-                     :style="{ opacity: (image.opacity != null ? image.opacity : 100) / 100 }">
+                <img
+                  :src="image.url"
+                  :alt="image.name"
+                  class="layer-preview"
+                  draggable="false"
+                  :class="{ 'layer-flipped': image.flipped }"
+                  :style="{
+                    opacity:
+                      (image.opacity != null ? image.opacity : 100) / 100,
+                  }"
+                />
               </div>
               <div class="flex-grow-1">
-                <div class="layer-name fw-bold" @dblclick="startRename(getOriginalIndex(index))" v-if="editingIndex !== getOriginalIndex(index)">
+                <div
+                  class="layer-name fw-bold"
+                  @dblclick="startRename(getOriginalIndex(index))"
+                  v-if="editingIndex !== getOriginalIndex(index)"
+                >
                   {{ truncateFilename(image.name, 15) }}
                 </div>
-                <input v-else v-model="editName" @blur="finishRename" @keyup.enter="finishRename"
-                       @keyup.esc="cancelRename" @focus="selectEditName"
-                       ref="nameInput" class="form-control form-control-sm layer-name-input" />
-                <div class="layer-info text-small text-muted">{{ image.width }}×{{ image.height }}px</div>
+                <input
+                  v-else
+                  v-model="editName"
+                  @blur="finishRename"
+                  @keyup.enter="finishRename"
+                  @keyup.esc="cancelRename"
+                  @focus="selectEditName"
+                  ref="nameInput"
+                  class="form-control form-control-sm layer-name-input"
+                />
+                <div class="layer-info text-small text-muted">
+                  {{ image.width }}×{{ image.height }}px
+                </div>
                 <div class="layer-opacity mt-1">
                   <div class="opacity-controls d-flex align-items-center gap-2">
                     <div class="flex-grow-1">
-                      <input type="range" class="form-range" min="0" max="100" step="1" v-model.number="image.opacity"
-                          @input="updateLayerOpacity(getOriginalIndex(index))">
+                      <input
+                        type="range"
+                        class="form-range"
+                        min="0"
+                        max="100"
+                        step="1"
+                        v-model.number="image.opacity"
+                        @input="updateLayerOpacity(getOriginalIndex(index))"
+                      />
                     </div>
-                    <span class="text-muted text-xs ml-2">{{ image.opacity }}%</span>
+                    <span class="text-muted text-xs ml-2"
+                      >{{ image.opacity }}%</span
+                    >
                   </div>
                 </div>
               </div>
               <div class="layer-controls d-flex flex-column me-2">
-                <button class="btn btn-sm btn-outline-secondary mb-1" @click.stop="toggleVisibility(getOriginalIndex(index))"
-                        :title="image.visible ? 'Hide layer' : 'Show layer'"
-                        :class="{ 'btn-outline-secondary': image.visible, 'btn-outline-warning': !image.visible }">
-                  <i :class="image.visible ? 'fas fa-eye' : 'fas fa-eye-slash'"></i>
+                <button
+                  class="btn btn-sm btn-outline-secondary mb-1"
+                  @click.stop="toggleVisibility(getOriginalIndex(index))"
+                  :title="image.visible ? 'Hide layer' : 'Show layer'"
+                  :class="{
+                    'btn-outline-secondary': image.visible,
+                    'btn-outline-warning': !image.visible,
+                  }"
+                >
+                  <i
+                    :class="image.visible ? 'fas fa-eye' : 'fas fa-eye-slash'"
+                  ></i>
                 </button>
-                <button class="btn btn-sm btn-outline-secondary mb-1" @click.stop="flipImage(getOriginalIndex(index))" title="Flip left-right"
-                        :class="{ 'active': image.flipped }">
+                <button
+                  class="btn btn-sm btn-outline-secondary mb-1"
+                  @click.stop="flipImage(getOriginalIndex(index))"
+                  title="Flip left-right"
+                  :class="{ active: image.flipped }"
+                >
                   <i class="fas fa-arrows-alt-h"></i>
                 </button>
-                <button class="btn btn-sm btn-outline-secondary" @click.stop="duplicateLayer(getOriginalIndex(index))" title="Duplicate layer">
+                <button
+                  class="btn btn-sm btn-outline-secondary"
+                  @click.stop="duplicateLayer(getOriginalIndex(index))"
+                  title="Duplicate layer"
+                >
                   <i class="fas fa-copy"></i>
                 </button>
               </div>
               <div class="layer-controls d-flex flex-column">
-                <button class="btn btn-sm btn-outline-primary mb-1" @click.stop="moveLayerUp(getOriginalIndex(index))" title="Move up">
+                <button
+                  class="btn btn-sm btn-outline-primary mb-1"
+                  @click.stop="moveLayerUp(getOriginalIndex(index))"
+                  title="Move up"
+                >
                   <i class="fas fa-arrow-up"></i>
                 </button>
-                <button class="btn btn-sm btn-outline-primary mb-1" @click.stop="moveLayerDown(getOriginalIndex(index))" title="Move down">
+                <button
+                  class="btn btn-sm btn-outline-primary mb-1"
+                  @click.stop="moveLayerDown(getOriginalIndex(index))"
+                  title="Move down"
+                >
                   <i class="fas fa-arrow-down"></i>
                 </button>
-                <button class="btn btn-sm btn-outline-danger" @click.stop="removeLayer(getOriginalIndex(index))" title="Remove">
+                <button
+                  class="btn btn-sm btn-outline-danger"
+                  @click.stop="removeLayer(getOriginalIndex(index))"
+                  title="Remove"
+                >
                   <i class="fas fa-trash"></i>
                 </button>
               </div>
@@ -107,14 +209,26 @@
           <div class="background-config p-3 border rounded bg-white">
             <div class="d-flex align-items-center justify-content-between mb-2">
               <label for="background-color" class="mb-0">Color</label>
-              <input id="background-color" type="color" v-model="backgroundColor" class="form-control form-control-color"
-                     :style="{ width: '60px', height: '38px', padding: '2px' }">
+              <input
+                id="background-color"
+                type="color"
+                v-model="backgroundColor"
+                class="form-control form-control-color"
+                :style="{ width: '60px', height: '38px', padding: '2px' }"
+              />
             </div>
             <div class="d-flex align-items-center justify-content-between">
               <label for="background-opacity" class="mb-0">Opacity</label>
               <div class="d-flex align-items-center flex-grow-1 ms-2 gap-2">
-                <input id="background-opacity" type="range" class="form-range flex-grow-1" min="0" max="100" step="1"
-                       v-model.number="backgroundOpacity">
+                <input
+                  id="background-opacity"
+                  type="range"
+                  class="form-range flex-grow-1"
+                  min="0"
+                  max="100"
+                  step="1"
+                  v-model.number="backgroundOpacity"
+                />
                 <span class="text-muted text-xs">{{ backgroundOpacity }}%</span>
               </div>
             </div>
@@ -124,7 +238,11 @@
     </div>
 
     <div class="controls mt-4 text-center">
-      <button id="download-btn" class="btn btn-primary me-2" @click="downloadCollage">
+      <button
+        id="download-btn"
+        class="btn btn-primary me-2"
+        @click="downloadCollage"
+      >
         <i class="fas fa-download me-2"></i> Download Collage
       </button>
       <button class="btn btn-secondary" @click="clearCanvas">
@@ -142,13 +260,13 @@ export default {
       images: [],
       selectedIndex: -1,
       editingIndex: -1,
-      editName: '',
+      editName: "",
       isDragging: false,
       dragStartX: 0,
       dragStartY: 0,
       dragImageIndex: -1,
       isResizing: false,
-      resizeHandle: '',
+      resizeHandle: "",
       resizeStartWidth: 0,
       resizeStartHeight: 0,
       resizeStartX: 0,
@@ -160,30 +278,39 @@ export default {
       canvasHeight: 600,
       // Scale factor for fitting canvas in container
       canvasScale: 1,
-      resizeHandles: ['top-left', 'top-right', 'bottom-left', 'bottom-right', 'left', 'right', 'top', 'bottom'],
+      resizeHandles: [
+        "top-left",
+        "top-right",
+        "bottom-left",
+        "bottom-right",
+        "left",
+        "right",
+        "top",
+        "bottom",
+      ],
       // Background settings
-      backgroundColor: '#FFFFFF',
-      backgroundOpacity: 100
+      backgroundColor: "#FFFFFF",
+      backgroundOpacity: 100,
     };
   },
   mounted() {
     this.resizeContainer();
-    window.addEventListener('resize', this.resizeContainer);
-    document.addEventListener('mousemove', this.performDrag);
-    document.addEventListener('mouseup', this.endDrag);
-    document.addEventListener('mouseup', this.endResize);
-    document.addEventListener('touchmove', this.performDrag);
-    document.addEventListener('touchend', this.endDrag);
-    document.addEventListener('touchend', this.endResize);
+    window.addEventListener("resize", this.resizeContainer);
+    document.addEventListener("mousemove", this.performDrag);
+    document.addEventListener("mouseup", this.endDrag);
+    document.addEventListener("mouseup", this.endResize);
+    document.addEventListener("touchmove", this.performDrag);
+    document.addEventListener("touchend", this.endDrag);
+    document.addEventListener("touchend", this.endResize);
   },
   beforeDestroy() {
-    window.removeEventListener('resize', this.resizeContainer);
-    document.removeEventListener('mousemove', this.performDrag);
-    document.removeEventListener('mouseup', this.endDrag);
-    document.removeEventListener('mouseup', this.endResize);
-    document.removeEventListener('touchmove', this.performDrag);
-    document.removeEventListener('touchend', this.endDrag);
-    document.removeEventListener('touchend', this.endResize);
+    window.removeEventListener("resize", this.resizeContainer);
+    document.removeEventListener("mousemove", this.performDrag);
+    document.removeEventListener("mouseup", this.endDrag);
+    document.removeEventListener("mouseup", this.endResize);
+    document.removeEventListener("touchmove", this.performDrag);
+    document.removeEventListener("touchend", this.endDrag);
+    document.removeEventListener("touchend", this.endResize);
   },
   computed: {
     reversedImages() {
@@ -194,29 +321,29 @@ export default {
       return {
         transform: `scale(${this.canvasScale})`,
         width: `${this.canvasWidth}px`,
-        height: `${this.canvasHeight}px`
+        height: `${this.canvasHeight}px`,
       };
     },
     checkerboardStyle() {
       return {
-        backgroundImage: 'url(/images/assets/transparent-background-small.jpg)',
-        backgroundRepeat: 'repeat',
-        backgroundSize: 'auto'
+        backgroundImage: "url(/images/assets/transparent-background-small.jpg)",
+        backgroundRepeat: "repeat",
+        backgroundSize: "auto",
       };
     },
     backgroundOverlayStyle() {
       return {
-        position: 'absolute',
-        top: '0',
-        left: '0',
-        width: '100%',
-        height: '100%',
+        position: "absolute",
+        top: "0",
+        left: "0",
+        width: "100%",
+        height: "100%",
         backgroundColor: this.backgroundColor,
         opacity: this.backgroundOpacity / 100,
         zIndex: 0,
-        pointerEvents: 'none'
+        pointerEvents: "none",
       };
-    }
+    },
   },
   methods: {
     browseImages() {
@@ -228,7 +355,7 @@ export default {
       if (files) {
         this.processFiles(files);
       }
-      event.target.value = '';
+      event.target.value = "";
     },
 
     handleFileDrop(event) {
@@ -239,12 +366,13 @@ export default {
     },
 
     processFiles(files) {
-      const validFiles = Array.from(files).filter(file => 
-        file.type.startsWith('image/') && 
-        !file.type.includes('gif') && 
-        !file.name.toLowerCase().endsWith('.gif')
+      const validFiles = Array.from(files).filter(
+        (file) =>
+          file.type.startsWith("image/") &&
+          !file.type.includes("gif") &&
+          !file.name.toLowerCase().endsWith(".gif"),
       );
-      validFiles.forEach(file => {
+      validFiles.forEach((file) => {
         const reader = new FileReader();
         reader.onload = (e) => {
           const img = new Image();
@@ -252,16 +380,17 @@ export default {
             // Auto-fit images larger than canvas while maintaining aspect ratio
             let width = img.width;
             let height = img.height;
-            
+
             const maxWidth = this.canvasWidth;
             const maxHeight = this.canvasHeight;
-            
+
             if (width > maxWidth || height > maxHeight) {
-              const ratio = Math.min(maxWidth / width, maxHeight / height) * 0.95;
+              const ratio =
+                Math.min(maxWidth / width, maxHeight / height) * 0.95;
               width = Math.round(width * ratio);
               height = Math.round(height * ratio);
             }
-            
+
             const newImage = {
               id: Date.now() + Math.random(),
               url: e.target.result,
@@ -275,7 +404,7 @@ export default {
               zIndex: this.images.length,
               visible: true,
               flipped: false,
-              opacity: 100
+              opacity: 100,
             };
             this.images.push(newImage);
             this.selectLayer(this.images.length - 1);
@@ -295,9 +424,11 @@ export default {
       const scale = this.canvasScale || 1;
       const rectLeft = canvasRect.left / scale;
       const rectTop = canvasRect.top / scale;
-      if (event.type === 'touchstart') {
-        this.dragStartX = event.touches[0].clientX - rectLeft - this.images[index].x;
-        this.dragStartY = event.touches[0].clientY - rectTop - this.images[index].y;
+      if (event.type === "touchstart") {
+        this.dragStartX =
+          event.touches[0].clientX - rectLeft - this.images[index].x;
+        this.dragStartY =
+          event.touches[0].clientY - rectTop - this.images[index].y;
       } else {
         this.dragStartX = event.clientX - rectLeft - this.images[index].x;
         this.dragStartY = event.clientY - rectTop - this.images[index].y;
@@ -315,8 +446,10 @@ export default {
       const scale = this.canvasScale || 1;
       const rectLeft = canvasRect.left / scale;
       const rectTop = canvasRect.top / scale;
-      const clientX = event.type === 'touchstart' ? event.touches[0].clientX : event.clientX;
-      const clientY = event.type === 'touchstart' ? event.touches[0].clientY : event.clientY;
+      const clientX =
+        event.type === "touchstart" ? event.touches[0].clientX : event.clientX;
+      const clientY =
+        event.type === "touchstart" ? event.touches[0].clientY : event.clientY;
       this.resizeStartX = clientX - rectLeft;
       this.resizeStartY = clientY - rectTop;
       this.resizeStartWidth = this.images[index].width;
@@ -327,7 +460,11 @@ export default {
     },
 
     performDrag(event) {
-      if (this.isResizing && this.resizeImageIndex !== undefined && this.resizeImageIndex !== -1) {
+      if (
+        this.isResizing &&
+        this.resizeImageIndex !== undefined &&
+        this.resizeImageIndex !== -1
+      ) {
         event.preventDefault();
         this.performResize(event);
         return;
@@ -336,7 +473,7 @@ export default {
       event.preventDefault();
       const canvasRect = this.$refs.canvas.getBoundingClientRect();
       let newX, newY;
-      if (event.type === 'touchmove') {
+      if (event.type === "touchmove") {
         newX = event.touches[0].clientX - canvasRect.left - this.dragStartX;
         newY = event.touches[0].clientY - canvasRect.top - this.dragStartY;
       } else {
@@ -357,8 +494,10 @@ export default {
       const scale = this.canvasScale || 1;
       const rectLeft = canvasRect.left / scale;
       const rectTop = canvasRect.top / scale;
-      const clientX = event.type === 'touchmove' ? event.touches[0].clientX : event.clientX;
-      const clientY = event.type === 'touchmove' ? event.touches[0].clientY : event.clientY;
+      const clientX =
+        event.type === "touchmove" ? event.touches[0].clientX : event.clientX;
+      const clientY =
+        event.type === "touchmove" ? event.touches[0].clientY : event.clientY;
       const cx = clientX - rectLeft;
       const cy = clientY - rectTop;
       const dx = cx - this.resizeStartX;
@@ -373,23 +512,23 @@ export default {
       // Determine which axis the user is primarily dragging along
       const absDx = Math.abs(dx);
       const absDy = Math.abs(dy);
-      const dominantAxis = absDx >= absDy ? 'x' : 'y';
+      const dominantAxis = absDx >= absDy ? "x" : "y";
 
-      if (handle === 'bottom-right') {
+      if (handle === "bottom-right") {
         // Corner - maintain aspect ratio
         const ratio = this.resizeStartHeight / this.resizeStartWidth;
-        if (dominantAxis === 'x') {
+        if (dominantAxis === "x") {
           newWidth = Math.max(20, this.resizeStartWidth + dx);
           newHeight = Math.max(20, newWidth * ratio);
         } else {
           newHeight = Math.max(20, this.resizeStartHeight + dy);
           newWidth = Math.max(20, newHeight / ratio);
         }
-      } else if (handle === 'bottom-left') {
+      } else if (handle === "bottom-left") {
         // Corner - maintain aspect ratio
         // Opposite corner (top-right) stays fixed: top edge and right edge
         const ratio = this.resizeStartHeight / this.resizeStartWidth;
-        if (dominantAxis === 'x') {
+        if (dominantAxis === "x") {
           newWidth = Math.max(20, this.resizeStartWidth - dx);
           newHeight = Math.max(20, newWidth * ratio);
         } else {
@@ -400,11 +539,11 @@ export default {
         newX = this.resizeStartImgX + this.resizeStartWidth - newWidth;
         // Top edge stays fixed
         newY = this.resizeStartImgY;
-      } else if (handle === 'top-right') {
+      } else if (handle === "top-right") {
         // Corner - maintain aspect ratio
         // Opposite corner (bottom-left) stays fixed: left edge and bottom edge
         const ratio = this.resizeStartHeight / this.resizeStartWidth;
-        if (dominantAxis === 'x') {
+        if (dominantAxis === "x") {
           newWidth = Math.max(20, this.resizeStartWidth + dx);
           newHeight = Math.max(20, newWidth * ratio);
         } else {
@@ -415,11 +554,11 @@ export default {
         newX = this.resizeStartImgX;
         // Bottom edge stays fixed
         newY = this.resizeStartImgY + this.resizeStartHeight - newHeight;
-      } else if (handle === 'top-left') {
+      } else if (handle === "top-left") {
         // Corner - maintain aspect ratio
         // Opposite corner (bottom-right) stays fixed: right edge and bottom edge
         const ratio = this.resizeStartHeight / this.resizeStartWidth;
-        if (dominantAxis === 'x') {
+        if (dominantAxis === "x") {
           newWidth = Math.max(20, this.resizeStartWidth - dx);
           newHeight = Math.max(20, newWidth * ratio);
         } else {
@@ -430,18 +569,18 @@ export default {
         newX = this.resizeStartImgX + this.resizeStartWidth - newWidth;
         // Bottom edge stays fixed
         newY = this.resizeStartImgY + this.resizeStartHeight - newHeight;
-      } else if (handle === 'left') {
+      } else if (handle === "left") {
         // Side - width only
         newWidth = Math.max(20, this.resizeStartWidth - dx);
         newX = this.resizeStartImgX + dx;
-      } else if (handle === 'right') {
+      } else if (handle === "right") {
         // Side - width only
         newWidth = Math.max(20, this.resizeStartWidth + dx);
-      } else if (handle === 'top') {
+      } else if (handle === "top") {
         // Side - height only
         newHeight = Math.max(20, this.resizeStartHeight - dy);
         newY = this.resizeStartImgY + dy;
-      } else if (handle === 'bottom') {
+      } else if (handle === "bottom") {
         // Side - height only
         newHeight = Math.max(20, this.resizeStartHeight + dy);
       }
@@ -487,7 +626,7 @@ export default {
     endResize() {
       this.isResizing = false;
       this.resizeImageIndex = -1;
-      this.resizeHandle = '';
+      this.resizeHandle = "";
     },
 
     getOriginalIndex(reversedIndex) {
@@ -537,12 +676,12 @@ export default {
         this.images[this.editingIndex].name = this.editName.trim();
       }
       this.editingIndex = -1;
-      this.editName = '';
+      this.editName = "";
     },
 
     cancelRename() {
       this.editingIndex = -1;
-      this.editName = '';
+      this.editName = "";
     },
 
     selectEditName() {
@@ -564,7 +703,7 @@ export default {
     },
 
     toggleVisibility(index) {
-      this.$set(this.images[index], 'visible', !this.images[index].visible);
+      this.$set(this.images[index], "visible", !this.images[index].visible);
     },
 
     flipImage(index) {
@@ -577,7 +716,7 @@ export default {
         // When flipping, adjust position if it would go off canvas
         if (img.x < 0) img.x = 50;
       }
-      this.$set(this.images[index], 'flipped', !img.flipped);
+      this.$set(this.images[index], "flipped", !img.flipped);
     },
 
     duplicateLayer(index) {
@@ -585,7 +724,7 @@ export default {
       const newImage = {
         id: Date.now() + Math.random(),
         url: original.url,
-        name: original.name + ' (copy)',
+        name: original.name + " (copy)",
         originalWidth: original.originalWidth,
         originalHeight: original.originalHeight,
         width: original.width,
@@ -595,7 +734,7 @@ export default {
         zIndex: this.images.length,
         visible: original.visible,
         flipped: original.flipped,
-        opacity: original.opacity
+        opacity: original.opacity,
       };
       this.images.push(newImage);
       this.selectLayer(this.images.length - 1);
@@ -608,7 +747,7 @@ export default {
     },
 
     clearCanvas() {
-      if (confirm('Are you sure you want to clear the canvas?')) {
+      if (confirm("Are you sure you want to clear the canvas?")) {
         this.images = [];
         this.selectedIndex = -1;
       }
@@ -616,13 +755,13 @@ export default {
 
     downloadCollage() {
       if (this.images.length === 0) {
-        alert('Please add some images to the collage first.');
+        alert("Please add some images to the collage first.");
         return;
       }
-      const canvas = document.createElement('canvas');
+      const canvas = document.createElement("canvas");
       canvas.width = this.canvasWidth;
       canvas.height = this.canvasHeight;
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
 
       // Apply background color with opacity
       ctx.globalAlpha = this.backgroundOpacity / 100;
@@ -631,23 +770,29 @@ export default {
       ctx.globalAlpha = 1;
       const sortedImages = [...this.images].sort((a, b) => a.zIndex - b.zIndex);
       let loaded = 0;
-      sortedImages.forEach(image => {
+      sortedImages.forEach((image) => {
         const img = new Image();
-        img.crossOrigin = 'anonymous';
+        img.crossOrigin = "anonymous";
         img.onload = () => {
-          ctx.drawImage(img, Math.round(image.x), Math.round(image.y), Math.round(image.width), Math.round(image.height));
+          ctx.drawImage(
+            img,
+            Math.round(image.x),
+            Math.round(image.y),
+            Math.round(image.width),
+            Math.round(image.height),
+          );
           loaded++;
           if (loaded === sortedImages.length) {
             canvas.toBlob((blob) => {
               const url = window.URL.createObjectURL(blob);
-              const a = document.createElement('a');
+              const a = document.createElement("a");
               a.href = url;
-              a.download = 'collage.png';
+              a.download = "collage.png";
               document.body.appendChild(a);
               a.click();
               document.body.removeChild(a);
               window.URL.revokeObjectURL(url);
-            }, 'image/png');
+            }, "image/png");
           }
         };
         img.onerror = () => {
@@ -655,14 +800,14 @@ export default {
           if (loaded === sortedImages.length) {
             canvas.toBlob((blob) => {
               const url = window.URL.createObjectURL(blob);
-              const a = document.createElement('a');
+              const a = document.createElement("a");
               a.href = url;
-              a.download = 'collage.png';
+              a.download = "collage.png";
               document.body.appendChild(a);
               a.click();
               document.body.removeChild(a);
               window.URL.revokeObjectURL(url);
-            }, 'image/png');
+            }, "image/png");
           }
         };
         img.src = image.url;
@@ -683,15 +828,15 @@ export default {
 
     truncateFilename(filename, maxLength) {
       if (filename.length <= maxLength) return filename;
-      return filename.substring(0, maxLength - 3) + '...';
-    }
-  }
-}
+      return filename.substring(0, maxLength - 3) + "...";
+    },
+  },
+};
 </script>
 
 <style scoped>
 .image-collage-container {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .upload-area {
@@ -759,7 +904,7 @@ export default {
 }
 
 .collage-item:hover {
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 #canvas-wrapper {
