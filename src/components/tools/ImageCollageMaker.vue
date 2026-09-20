@@ -29,12 +29,12 @@
       >
         <div
           id="canvas-wrapper"
-          class="p-0 border border-secondary rounded position-relative overflow-hidden"
+          class="p-0 position-relative overflow-hidden"
           ref="canvasWrapper"
           :style="[canvasWrapperStyle]"
         >
           <div
-            id="border border-secondary d-block m-0"
+            id="d-block m-0"
             class="border"
             ref="canvas"
             :style="[canvasStyle, checkerboardStyle]"
@@ -147,10 +147,10 @@
                         v-model.number="image.opacity"
                         @input="updateLayerOpacity(getOriginalIndex(index))"
                       />
+                      <span class="text-muted text-xs ml-2"
+                        >{{ image.opacity }}%</span
+                      >
                     </div>
-                    <span class="text-muted text-xs ml-2"
-                      >{{ image.opacity }}%</span
-                    >
                   </div>
                 </div>
               </div>
@@ -284,8 +284,8 @@ export default {
       resizeStartImgX: 0,
       resizeStartImgY: 0,
       // Fixed canvas dimensions - these never change
-      canvasWidth: 800,
-      canvasHeight: 600,
+      canvasWidth: 1600,
+      canvasHeight: 1200,
       // Scale factor for fitting canvas in container
       canvasScale: 1,
       resizeHandles: [
