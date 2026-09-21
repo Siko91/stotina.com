@@ -167,6 +167,13 @@
               <div class="layer-controls d-flex flex-column me-2 justify-content-between">
                 <button
                   class="btn btn-sm btn-outline-secondary mb-1"
+                  @click.stop="setImageAngle(getOriginalIndex(index), images[getOriginalIndex(index)].angle - 45)"
+                  title="Rotate 45 degrees clockwise"
+                >
+                  <i class="fas fa-arrow-left"></i>
+                </button>
+                <button
+                  class="btn btn-sm btn-outline-secondary mb-1"
                   @click.stop="toggleLock(getOriginalIndex(index))"
                   :title="image.locked ? 'Unlock layer' : 'Lock layer'"
                   :class="{
@@ -191,13 +198,6 @@
                     :class="image.visible ? 'fas fa-eye' : 'fas fa-eye-slash'"
                   ></i>
                 </button>
-                <button
-                  class="btn btn-sm btn-outline-secondary"
-                  @click.stop="duplicateLayer(getOriginalIndex(index))"
-                  title="Duplicate layer"
-                >
-                  <i class="fas fa-copy"></i>
-                </button>
               </div>
               <div class="layer-controls d-flex flex-column me-2 mx-1">
                 <button
@@ -209,18 +209,18 @@
                 </button>
                 <button
                   class="btn btn-sm btn-outline-secondary mb-1"
-                  @click.stop="setImageAngle(getOriginalIndex(index), images[getOriginalIndex(index)].angle - 45)"
-                  title="Rotate 45 degrees clockwise"
-                >
-                  <i class="fas fa-arrow-left"></i>
-                </button>
-                <button
-                  class="btn btn-sm btn-outline-secondary mb-1"
                   @click.stop="flipImage(getOriginalIndex(index))"
                   title="Flip left-right"
                   :class="{ active: image.flipped }"
                 >
                   <i class="fas fa-arrows-alt-h"></i>
+                </button>
+                <button
+                  class="btn btn-sm btn-outline-secondary"
+                  @click.stop="duplicateLayer(getOriginalIndex(index))"
+                  title="Duplicate layer"
+                >
+                  <i class="fas fa-copy"></i>
                 </button>
               </div>
               <div class="layer-controls d-flex flex-column">
@@ -574,6 +574,39 @@ export default {
       this.validateVisibility(this.images[this.dragImageIndex]);
     },
 
+    getEffectiveResizeHandle(index, handle) {
+      const img = this.images[index];
+      const offsets = {
+        "top-left": [-img.width / 2, -img.height / 2],
+        "top-right": [img.width / 2, -img.height / 2],
+        "bottom-left": [-img.width / 2, img.height / 2],
+        "bottom-right": [img.width / 2, img.height / 2],
+        "left": [-img.width / 2, 0],
+        "right": [img.width / 2, 0],
+        "top": [0, -img.height / 2],
+        "bottom": [0, img.height / 2],
+      };
+      const [offsetX, offsetY] = offsets[handle] || [0, 0];
+      const visualOffsetX = img.flipped ? -offsetX : offsetX;
+      const visualOffsetY = offsetY;
+      const radians = (img.angle || 0) * Math.PI / 180;
+      const cos = Math.cos(radians);
+      const sin = Math.sin(radians);
+      const visualX = visualOffsetX * cos - visualOffsetY * sin;
+      const visualY = visualOffsetX * sin + visualOffsetY * cos;
+
+      if (handle.includes("-")) {
+        const xSide = visualX < 0 ? "left" : "right";
+        const ySide = visualY < 0 ? "top" : "bottom";
+        return `${ySide}-${xSide}`;
+      }
+
+      if (Math.abs(visualX) >= Math.abs(visualY)) {
+        return visualX < 0 ? "left" : "right";
+      }
+      return visualY < 0 ? "top" : "bottom";
+    },
+
     performResize(event) {
       if (!this.isResizing) return;
       const idx = this.resizeImageIndex;
@@ -587,20 +620,17 @@ export default {
       const dx = canvasX - this.resizeStartX;
       const dy = canvasY - this.resizeStartY;
 
-      const handle = this.resizeHandle;
-      let newX = this.resizeStartImgX;
-      let newY = this.resizeStartImgY;
+      const effectiveHandle = this.getEffectiveResizeHandle(idx, this.resizeHandle);
+
       let newWidth = this.resizeStartWidth;
       let newHeight = this.resizeStartHeight;
+      let newX = this.resizeStartImgX;
+      let newY = this.resizeStartImgY;
 
-      // Determine which axis the user is primarily dragging along
-      const absDx = Math.abs(dx);
-      const absDy = Math.abs(dy);
-      const dominantAxis = absDx >= absDy ? "x" : "y";
+      const dominantAxis = Math.abs(dx) >= Math.abs(dy) ? "x" : "y";
+      const ratio = this.resizeStartHeight / this.resizeStartWidth;
 
-      if (handle === "bottom-right") {
-        // Corner - maintain aspect ratio
-        const ratio = this.resizeStartHeight / this.resizeStartWidth;
+      if (effectiveHandle === "bottom-right") {
         if (dominantAxis === "x") {
           newWidth = Math.max(20, this.resizeStartWidth + dx);
           newHeight = Math.max(20, newWidth * ratio);
@@ -608,10 +638,7 @@ export default {
           newHeight = Math.max(20, this.resizeStartHeight + dy);
           newWidth = Math.max(20, newHeight / ratio);
         }
-      } else if (handle === "bottom-left") {
-        // Corner - maintain aspect ratio
-        // Opposite corner (top-right) stays fixed: top edge and right edge
-        const ratio = this.resizeStartHeight / this.resizeStartWidth;
+      } else if (effectiveHandle === "bottom-left") {
         if (dominantAxis === "x") {
           newWidth = Math.max(20, this.resizeStartWidth - dx);
           newHeight = Math.max(20, newWidth * ratio);
@@ -619,14 +646,9 @@ export default {
           newHeight = Math.max(20, this.resizeStartHeight + dy);
           newWidth = Math.max(20, newHeight / ratio);
         }
-        // Right edge stays fixed
         newX = this.resizeStartImgX + this.resizeStartWidth - newWidth;
-        // Top edge stays fixed
         newY = this.resizeStartImgY;
-      } else if (handle === "top-right") {
-        // Corner - maintain aspect ratio
-        // Opposite corner (bottom-left) stays fixed: left edge and bottom edge
-        const ratio = this.resizeStartHeight / this.resizeStartWidth;
+      } else if (effectiveHandle === "top-right") {
         if (dominantAxis === "x") {
           newWidth = Math.max(20, this.resizeStartWidth + dx);
           newHeight = Math.max(20, newWidth * ratio);
@@ -634,14 +656,9 @@ export default {
           newHeight = Math.max(20, this.resizeStartHeight - dy);
           newWidth = Math.max(20, newHeight / ratio);
         }
-        // Left edge stays fixed
         newX = this.resizeStartImgX;
-        // Bottom edge stays fixed
         newY = this.resizeStartImgY + this.resizeStartHeight - newHeight;
-      } else if (handle === "top-left") {
-        // Corner - maintain aspect ratio
-        // Opposite corner (bottom-right) stays fixed: right edge and bottom edge
-        const ratio = this.resizeStartHeight / this.resizeStartWidth;
+      } else if (effectiveHandle === "top-left") {
         if (dominantAxis === "x") {
           newWidth = Math.max(20, this.resizeStartWidth - dx);
           newHeight = Math.max(20, newWidth * ratio);
@@ -649,23 +666,17 @@ export default {
           newHeight = Math.max(20, this.resizeStartHeight - dy);
           newWidth = Math.max(20, newHeight / ratio);
         }
-        // Right edge stays fixed
         newX = this.resizeStartImgX + this.resizeStartWidth - newWidth;
-        // Bottom edge stays fixed
         newY = this.resizeStartImgY + this.resizeStartHeight - newHeight;
-      } else if (handle === "left") {
-        // Side - width only
+      } else if (effectiveHandle === "left") {
         newWidth = Math.max(20, this.resizeStartWidth - dx);
         newX = this.resizeStartImgX + dx;
-      } else if (handle === "right") {
-        // Side - width only
+      } else if (effectiveHandle === "right") {
         newWidth = Math.max(20, this.resizeStartWidth + dx);
-      } else if (handle === "top") {
-        // Side - height only
+      } else if (effectiveHandle === "top") {
         newHeight = Math.max(20, this.resizeStartHeight - dy);
         newY = this.resizeStartImgY + dy;
-      } else if (handle === "bottom") {
-        // Side - height only
+      } else if (effectiveHandle === "bottom") {
         newHeight = Math.max(20, this.resizeStartHeight + dy);
       }
 
