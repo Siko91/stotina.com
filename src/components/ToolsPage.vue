@@ -1,7 +1,8 @@
 <template>
   <div>
+    <h1 class="text-center mb-4">Tools</h1>
     <div id="toolListArea">
-      <ToolListElement></ToolListElement>
+      <ToolListElement category="regular"></ToolListElement>
     </div>
   </div>
 </template>

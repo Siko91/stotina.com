@@ -1,7 +1,7 @@
 <template>
   <div>
   <div class="toolListBox grid">
-    <div v-for="tool in tools" v-bind:key="tool.id" class="toolCard">
+    <div v-for="tool in filteredTools" v-bind:key="tool.id" class="toolCard">
         <a
           class="toolListItem"
           :class="tool.unfinished ? 'unfinished' : 'finished'"
@@ -28,14 +28,25 @@ import tools from "../../assets/tools.json";
 
 export default {
   name: "ToolListElement",
+  props: {
+    category: {
+      type: String,
+      default: null,
+    },
+  },
   data() {
     return {
       tools: tools.map((el, id) => ({ ...el, id })),
     };
   },
-  props: {},
-  computed: {},
-  methods: {},
+  computed: {
+    filteredTools() {
+      if (!this.category) {
+        return this.tools;
+      }
+      return this.tools.filter((tool) => tool.category === this.category);
+    },
+  },
 };
 </script>
 

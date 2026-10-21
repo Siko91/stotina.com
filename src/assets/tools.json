@@ -2,116 +2,137 @@
   {
     "path": "/tools/decoderaw",
     "name": "Decode Bitcoin Tx",
-    "icon": "/images/icons/tx-decoder.png"
+    "icon": "/images/icons/tx-decoder.png",
+    "category": "blockchain"
   },
   {
     "path": "/tools/parseuri",
     "name": "Parse Bitcoin URI",
-    "icon": "/images/icons/bitcoin-uri.png"
+    "icon": "/images/icons/bitcoin-uri.png",
+    "category": "blockchain"
   },
   {
     "path": "/tools/currencyconverter",
     "name": "Currency Converter",
-    "icon": "/images/icons/prices.png"
+    "icon": "/images/icons/prices.png",
+    "category": "blockchain"
   },
   {
     "path": "/tools/scripteval",
     "name": "Eval Bitcoin Script",
-    "icon": "/images/icons/b-compiler.png"
+    "icon": "/images/icons/b-compiler.png",
+    "category": "blockchain"
   },
   {
     "path": "/tools/convertdata",
     "name": "Convert Data Formats",
-    "icon": "/images/icons/formats.png"
+    "icon": "/images/icons/formats.png",
+    "category": "regular"
   },
   {
     "path": "/tools/debugbsv15",
     "name": "Console with BSVJS 1.5",
-    "icon": "/images/icons/term1.png"
+    "icon": "/images/icons/term1.png",
+    "category": "blockchain"
   },
   {
     "path": "/tools/debugbsv2",
     "name": "Console with BSVJS 2.0",
-    "icon": "/images/icons/term2.png"
+    "icon": "/images/icons/term2.png",
+    "category": "blockchain"
   },
   {
     "path": "/tools/generatekey",
     "name": "Generate Testing Keys",
-    "icon": "/images/icons/keys.png"
+    "icon": "/images/icons/keys.png",
+    "category": "blockchain"
   },
   {
     "path": "/tools/stopwatch",
     "name": "Stopwatch",
-    "icon": "/images/icons/stopwatch.png"
+    "icon": "/images/icons/stopwatch.png",
+    "category": "regular"
   },
   {
     "path": "/tools/color-palette",
     "name": "Color Palette Generator",
     "icon": "/images/icons/color-palette.png",
+    "category": "regular",
     "unfinished": true
   },
   {
     "path": "/tools/paint",
     "name": "Simple Painter",
     "icon": "/images/icons/paint.png",
+    "category": "regular",
     "unfinished": true
   },
   {
     "path": "/tools/convert-doc",
     "name": "Document Converter",
     "icon": "/images/icons/convert-doc.png",
+    "category": "regular",
     "unfinished": true
   },
   {
     "path": "/tools/cron",
     "name": "CRON Parser",
     "icon": "/images/icons/cron.png",
+    "category": "regular",
     "unfinished": true
   },
   {
     "path": "/tools/diff",
     "name": "Text Diff Visualizer",
     "icon": "/images/icons/diff.png",
+    "category": "regular",
     "unfinished": true
   },
   {
     "path": "/tools/image-collage-maker",
     "name": "Collage Maker",
-    "icon": "/images/icons/image-collage-maker.png"
+    "icon": "/images/icons/image-collage-maker.png",
+    "category": "regular"
   },
   {
     "path": "/tools/html-viewer",
     "name": "HTML Visualizer",
-    "icon": "/images/icons/html-viewer.png"
+    "icon": "/images/icons/html-viewer.png",
+    "category": "regular"
   },
   {
     "path": "/tools/js-runner",
     "name": "JS Runner",
     "icon": "/images/icons/js-compiler.png",
+    "category": "regular",
     "unfinished": true
   },
   {
     "path": "/tools/json-path",
     "name": "JSON-Path Visualizer",
     "icon": "/images/icons/json-path.png",
+    "category": "regular",
     "unfinished": true
   },
   {
     "path": "/tools/lorem",
     "name": "Lorem Ipsum Generator",
     "icon": "/images/icons/lorem.png",
+    "category": "regular",
     "unfinished": true
   },
   {
     "path": "/tools/markdown-viewer",
     "name": "Markdown Viewer",
     "icon": "/images/icons/markdown-viewer.png",
+    "category": "regular",
     "unfinished": true
   },
   {
     "path": "/tools/qr",
     "name": "QR Code Generator",
     "icon": "/images/icons/qr2.png",
+    "category": "regular",
     "unfinished": true
   }
 ]

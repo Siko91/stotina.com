@@ -39,6 +39,15 @@
         <li class="nav-item">
           <a
             class="nav-link theme-c-headerLinks theme-c-hover pointer"
+            v-on:click="navigate('/blockchain-tools')"
+            href="/#/blockchain-tools"
+          >
+            Blockchain Tools
+          </a>
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link theme-c-headerLinks theme-c-hover pointer"
             v-on:click="navigate('/apps')"
             href="/#/apps"
           >
