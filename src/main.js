@@ -18,6 +18,8 @@ import TermsPage from "./components/TermsPage.vue";
 
 import ProbablyNothingPage from "./components/apps/ProbablyNothingPage.vue";
 
+import TicTacToePage from "./components/games/TicTacToePage.vue";
+
 import BlockInspector from "./components/tools/BlockInspector.vue"
 import BsvTestnetWalletPage from "./components/tools/BsvTestnetWalletPage.vue"
 import ConsoleBsvJs15Page from "./components/tools/ConsoleBsvJs15Page.vue"
@@ -94,6 +96,7 @@ const router = new VueRouter({
     { path: "/joke-apps", component: JokeAppsPage },
     { path: "/joke-apps/probably-nothing", component: ProbablyNothingPage },
     { path: "/games", component: GamesPage },
+    { path: "/games/tictactoe", component: TicTacToePage },
 
     { path: "/about", component: AboutPage },
     { path: "/article", component: ArticlePage },

@@ -1,6 +1,6 @@
 [{
-    "path": "/",
-    "name": "No Games yet",
-    "icon": "/images/logo.png",
-    "screenImage": "/images/logo.png"
+    "path": "/games/tictactoe",
+    "name": "Tic Tac Toe 5x5",
+    "icon": "/images/icons/tictactoe.png",
+    "screenImage": "/images/icons/tictactoe-screen.png"
 }]
