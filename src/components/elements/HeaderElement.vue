@@ -30,6 +30,24 @@
         <li class="nav-item">
           <a
             class="nav-link theme-c-headerLinks theme-c-hover pointer"
+            v-on:click="navigate('/apps')"
+            href="/#/apps"
+          >
+            Apps
+          </a>
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link theme-c-headerLinks theme-c-hover pointer"
+            v-on:click="navigate('/games')"
+            href="/#/games"
+          >
+            Games
+          </a>
+        </li>
+        <li class="nav-item">
+          <a
+            class="nav-link theme-c-headerLinks theme-c-hover pointer"
             v-on:click="navigate('/tools')"
             href="/#/tools"
           >
@@ -48,19 +66,10 @@
         <li class="nav-item">
           <a
             class="nav-link theme-c-headerLinks theme-c-hover pointer"
-            v-on:click="navigate('/apps')"
-            href="/#/apps"
-          >
-            Apps
-          </a>
-        </li>
-        <li class="nav-item">
-          <a
-            class="nav-link theme-c-headerLinks theme-c-hover pointer"
-            v-on:click="navigate('/apps')"
+            v-on:click="navigate('/joke-apps')"
             href="/#/joke-apps"
           >
-            Fun
+            Jokes
           </a>
         </li>
       </ul>

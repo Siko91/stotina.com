@@ -4,6 +4,7 @@ import App from "./App.vue";
 
 import AppsPage from "./components/AppsPage.vue";
 import JokeAppsPage from "./components/JokeAppsPage.vue";
+import GamesPage from "./components/GamesPage.vue";
 import ToolsPage from "./components/ToolsPage.vue";
 import BlockchainToolsPage from "./components/BlockchainToolsPage.vue";
 import HomePage from "./components/HomePage.vue";
@@ -92,6 +93,7 @@ const router = new VueRouter({
 
     { path: "/joke-apps", component: JokeAppsPage },
     { path: "/joke-apps/probably-nothing", component: ProbablyNothingPage },
+    { path: "/games", component: GamesPage },
 
     { path: "/about", component: AboutPage },
     { path: "/article", component: ArticlePage },
