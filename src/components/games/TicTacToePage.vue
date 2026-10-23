@@ -30,6 +30,14 @@
             </option>
           </select>
         </div>
+        <div class="form-group mx-2 mb-3">
+          <label class="d-block mb-1">Gravity</label>
+          <select :value="configGravity" @change="onConfigChange('configGravity', $event)" class="form-control">
+            <option :value="'none'">None</option>
+            <option :value="'fall'">Fall 1 Cell Per Turn</option>
+            <option :value="'instant'">Instant Gravity</option>
+          </select>
+        </div>
       </div>
       <button class="btn btn-success btn-lg" @click="applyConfig">Start Game</button>
       <small class="d-block text-muted mt-2">
@@ -50,7 +58,9 @@
           class="cell"
           :class="{
             'cell-filled': cell !== '',
-            'cell-winner': winnerCells.includes(index)
+            'cell-winner': winnerCells.includes(index),
+            'cell-blink': fallBlinkCells.includes(index),
+            'cell-fade': fallFadeCells.includes(index)
           }"
           @click="makeMove(index)"
         >
@@ -126,8 +136,17 @@ export default {
       configNumPlayers: 2,
       configBoardSize: 4,
       configWinLength: 3,
+      configGravity: "none",
       gridSizeOptions: [3, 4, 5, 6, 7],
       winLengthOptions: [3, 4, 5],
+
+      gravityMode: "none",
+      fallBlinkCells: [],
+      fallFadeCells: [],
+      fallPiecePlayer: null,
+      fallPieceFrom: null,
+      fallPieceTo: null,
+      isFalling: false,
 
       board: [],
       moves: [],
@@ -214,6 +233,10 @@ export default {
       this.numPlayers = this.configNumPlayers;
       this.boardSize = this.configBoardSize;
       this.winLength = this.configWinLength;
+      this.gravityMode = this.configGravity;
+      this.fallBlinkCells = [];
+      this.fallFadeCells = [];
+      this.isFalling = false;
       this.resetBoardState();
       this.gameStarted = true;
       this.gameOver = false;
@@ -221,12 +244,21 @@ export default {
     },
     showPlayerSelection() {
       this.resetBoardState();
+      this.fallBlinkCells = [];
+      this.fallFadeCells = [];
+      this.isFalling = false;
       this.gameStarted = true;
       this.gameOver = false;
       this.playersChosen = false;
     },
     onConfigChange(key, event) {
-      this[key] = Number(event.target.value);
+      const value = event.target.value;
+      // configGravity uses string values, others use numbers
+      if (key === "configGravity") {
+        this[key] = value;
+      } else {
+        this[key] = Number(value);
+      }
       this.validateConfig();
     },
     validateConfig() {
@@ -248,12 +280,82 @@ export default {
     },
     makeMove(position) {
       if (!this.gameStarted || this.gameOver) return;
+      if (this.isFalling) return;
       if (this.board[position] !== "") return;
 
       const currentPlayer = this.currentPlayerIndex;
-      this.board[position] = this.currentSymbol(currentPlayer);
-      this.moves.push({ position, player: currentPlayer });
+      const size = this.boardSize;
 
+      let finalPosition = position;
+      let fallFrom = null;
+
+      if (this.gravityMode === "instant") {
+        // Find the lowest empty cell in this column
+        const col = position % size;
+        finalPosition = -1;
+        // Start from bottom row, go up
+        for (let row = size - 1; row >= 0; row--) {
+          const idx = row * size + col;
+          if (this.board[idx] === "") {
+            finalPosition = idx;
+            break;
+          }
+        }
+        if (finalPosition === -1) return; // Column is full
+        if (finalPosition !== position) {
+          fallFrom = position;
+        }
+      }
+
+      if (this.gravityMode === "instant" && fallFrom !== null) {
+        // Place piece at click position first for animation
+        this.board[fallFrom] = this.currentSymbol(currentPlayer);
+        this.moves.push({ position: finalPosition, player: currentPlayer });
+
+        // Animate the piece falling from fallFrom to finalPosition
+        this.isFalling = true;
+        this.fallFadeCells = [fallFrom];
+        this.fallBlinkCells = [];
+
+        setTimeout(() => {
+          // Piece has fallen: clear old position, set new position
+          this.board[fallFrom] = "";
+          this.board[finalPosition] = this.currentSymbol(currentPlayer);
+          this.moves[this.moves.length - 1].position = finalPosition;
+
+          this.fallFadeCells = [];
+
+          // Blink cells above the landed piece (same column, above finalPosition)
+          const col = finalPosition % size;
+          const row = Math.floor(finalPosition / size);
+          const blinkCells = [];
+          for (let r = 0; r < row; r++) {
+            blinkCells.push(r * size + col);
+          }
+          this.fallBlinkCells = blinkCells;
+
+          // After blink animation, check winner and switch player
+          setTimeout(() => {
+            this.fallBlinkCells = [];
+            this.isFalling = false;
+            if (this.checkWinner()) {
+              this.gameOver = true;
+              return;
+            }
+            if (this.board.every(cell => cell !== "")) {
+              this.gameOver = true;
+              return;
+            }
+            this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.numPlayers;
+          }, 600);
+        }, 200);
+      } else {
+        this.board[finalPosition] = this.currentSymbol(currentPlayer);
+        this.moves.push({ position: finalPosition, player: currentPlayer });
+        this.handlePlacedPiece();
+      }
+    },
+    handlePlacedPiece() {
       if (this.checkWinner()) {
         this.gameOver = true;
         return;
@@ -265,6 +367,11 @@ export default {
       }
 
       this.currentPlayerIndex = (this.currentPlayerIndex + 1) % this.numPlayers;
+
+      if (this.gravityMode === "fall" && this.currentPlayerIndex === 0) {
+        // After all players have taken a turn, shift everything down by 1 row
+        this.applyFallGravity();
+      }
     },
     undoMove() {
       if (this.moves.length === 0) return;
@@ -286,6 +393,59 @@ export default {
       this.winnerSymbol = "";
       this.winnerLine = [];
       this.winnerCells = [];
+      this.isFalling = false;
+      this.fallFadeCells = [];
+      this.fallBlinkCells = [];
+    },
+    applyFallGravity() {
+      const size = this.boardSize;
+      const blinkCells = [];
+      const fadeCells = [];
+
+      // Shift all pieces down by 1 row
+      // Process from bottom to top
+      for (let row = size - 1; row >= 0; row--) {
+        for (let col = 0; col < size; col++) {
+          const idx = row * size + col;
+          const belowIdx = (row + 1) * size + col;
+
+          if (row === size - 1) {
+            // Bottom row - piece falls out
+            if (this.board[idx] !== "") {
+              blinkCells.push(idx);
+            }
+            this.board[idx] = "";
+          } else {
+            // Move piece from current cell to below if below is empty
+            if (this.board[idx] !== "" && this.board[belowIdx] === "") {
+              this.board[belowIdx] = this.board[idx];
+              this.board[idx] = "";
+              fadeCells.push(idx);
+            }
+          }
+        }
+      }
+
+      // Start the fall animation
+      this.isFalling = true;
+      this.fallFadeCells = fadeCells;
+      this.fallBlinkCells = blinkCells;
+
+      setTimeout(() => {
+        // Board was already shifted in the first pass
+        // Just clear the fade animation and keep isFalling until blink completes
+        this.fallFadeCells = [];
+
+        if (blinkCells.length > 0) {
+          this.fallBlinkCells = blinkCells;
+          setTimeout(() => {
+            this.fallBlinkCells = [];
+            this.isFalling = false;
+          }, 600);
+        } else {
+          this.isFalling = false;
+        }
+      }, 200);
     },
     checkWinner() {
       const lines = this.getWinningLines();
@@ -439,6 +599,24 @@ export default {
   animation: blink 0.8s infinite;
 }
 
+.cell-blink {
+  animation: blinkYellow 0.6s ease-in-out;
+}
+
+@keyframes blinkYellow {
+  0%,
+  100% {
+    background-color: #f0b90b;
+  }
+  50% {
+    background-color: #6c757d;
+  }
+}
+
+.cell-fade .piece {
+  opacity: 0.3;
+  transition: opacity 0.2s ease;
+}
 @keyframes blink {
   0%,
   100% {

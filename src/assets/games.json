@@ -1,6 +1,6 @@
 [{
     "path": "/games/tictactoe",
-    "name": "Tic Tac Toe 5x5",
+    "name": "Tic Tac Toe",
     "icon": "/images/icons/tictactoe.png",
     "screenImage": "/images/icons/tictactoe-screen.png"
 }]
